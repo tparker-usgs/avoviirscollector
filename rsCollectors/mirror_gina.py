@@ -32,17 +32,14 @@ import socket
 #from db import Db
 #import h5py
 #from tomputils.downloader import fetch
-#import multiprocessing_logging
+import multiprocessing_logging
 
 
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
-OUT_DIR = os.path.join(os.environ['BASE_DIR'])
-TMP_DIR = os.path.join(os.environ['BASE_DIR'])
-
 
 class MirrorGina(object):
-    def __init__(self, config):
+    def __init__(self, base_dir, config):
         self.config = config
 
         # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
@@ -244,7 +241,7 @@ def main():
     config = tutil.parse_config(config_file)
 
     for queue in config['queues']:
-        logger.info("Launching queueu: {}", queue['name'])
+        logger.info("Launching queueu: %s", queue['name'])
 
 
 if __name__ == "__main__":

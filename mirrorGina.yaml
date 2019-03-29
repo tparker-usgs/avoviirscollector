@@ -1,3 +1,5 @@
+base-dir: /data
+
 defaults: &DEFAULTS
   connection_count: 5
   backfill_days: 2
