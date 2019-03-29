@@ -24,15 +24,13 @@ import posixpath
 from datetime import timedelta, datetime
 from urllib.parse import urlparse
 import pycurl
-import tomputils.mattermost as mm
 import tomputils.util as tutil
 import hashlib
 import socket
 from io import BytesIO
 from rsCollectors import viirs
-#from db import Db
-#import h5py
-from tomputils.downloader import fetch
+import h5py
+from tomputils.downloader import Downloader
 import multiprocessing_logging
 from functools import cmp_to_key
 
@@ -45,6 +43,7 @@ class MirrorGina(object):
         self.tmp_path = os.path.join(base_dir, 'tmp')
         self.config = config
         self.out_path = os.path.join(self.base_dir, self.config['out_path'])
+        self.connection_count = self.config['connection_count']
 
         # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
         # the libcurl tutorial for more info.
@@ -118,79 +117,6 @@ class MirrorGina(object):
 
         return m
 
-    def _log_sighting(self, filename, success, message=None, url=None):
-        self.logger.debug("TOMP HERE")
-        sight_date = datetime.utcnow()
-        granule = viirs.Viirs(filename)
-        proc_time = granule.proc_date - granule.start
-        trans_time = sight_date - granule.proc_date
-
-        msg = None
-        if not success:
-            msg = '### :x: Failed file transfer'
-            if url is not None:
-                msg += '\n**URL** %s' % url
-
-            msg += '\n**Filename** %s' % filename
-            if message is not None:
-                msg += '\n**Message** %s' % message
-            msg += '\n**Processing delay** %s' % mm.format_timedelta(proc_time)
-        else:
-            pause = timedelta(hours=1)
-
-            # post new orbit messasge
-            orbit_proc_time = self.conn.get_orbit_proctime(self.args.facility,
-                                                           granule)
-            gran_proc_time = self.conn.get_granule_proctime(self.args.facility,
-                                                            granule)
-
-            orb_msg = None
-            if orbit_proc_time is None:
-                msg = '### :earth_americas: New orbit from %s: %d'
-                orb_msg = msg % (self.args.facility, granule.orbit)
-            elif granule.proc_date > orbit_proc_time + pause:
-                msg = '### :snail: _Reprocessed orbit_ from %s: %d'
-                orb_msg = msg % (self.args.facility, granule.orbit)
-
-            if orb_msg is not None:
-                msg = '\n**First granule** %s (%s)'
-                orb_msg += msg % (mm.format_span(granule.start, granule.end),
-                                  granule.channel)
-                count = self.conn.get_orbit_granule_count(granule.orbit - 1,
-                                                          self.args.facility)
-                msg = '\n**Granules seen from orbit %d** %d'
-                orb_msg += msg % (granule.orbit - 1, count)
-
-            # post new granule message
-            if gran_proc_time is None:
-                msg = '### :satellite: New granule from %s'
-                gran_msg = msg % self.args.facility
-            elif granule.proc_date > gran_proc_time + pause:
-                msg = '### :snail: _Reprocessed granule_ from %s'
-                gran_msg = msg % self.args.facility
-            else:
-                gran_msg = None
-
-            if gran_msg is not None:
-                gran_span = mm.format_span(granule.start, granule.end)
-                gran_delta = mm.format_timedelta(granule.end - granule.start)
-                msg = '\n**Granule span** %s (%s)'
-                gran_msg += msg % (gran_span, gran_delta)
-                msg = '\n**Processing delay** %s'
-                gran_msg += msg % mm.format_timedelta(proc_time)
-                msg = '\n**Transfer delay** %s'
-                gran_msg += msg % mm.format_timedelta(trans_time)
-                msg = '\n**Accumulated delay** %s'
-                gran_msg += msg % mm.format_timedelta(proc_time + trans_time)
-
-                if message:
-                    gran_msg += '\n**Message: %s' % message
-
-        if gran_msg is not None:
-            self.mattermost.post(gran_msg)
-
-        self.conn.insert_obs(self.args.facility, granule, sight_date, success)
-
     def fetch_files(self):
         file_list = self.get_file_list()
         file_queue = self.queue_files(file_list)
@@ -199,7 +125,8 @@ class MirrorGina(object):
             url = file['url']
             tmp_file = path_from_url(self.tmp_path, url)
             logger.debug("Fetching %s from %s" % (tmp_file, url))
-            fetch(url, tmp_file)
+            dl = Downloader(max_con=self.connection_count)
+            dl.fetch(url, tmp_file)
             md5 = file['md5sum']
             file_md5 = hashlib.md5(open(tmp_file, 'rb').read()).hexdigest()
             logger.debug("MD5 %s : %s" % (md5, file_md5))
@@ -211,10 +138,13 @@ class MirrorGina(object):
                     errmsg = None
                 except:
                     success = False
-                    errmsg = 'Good checksum, bad format.'
+                    logger.info('Bad HDF5 file %s', tmp_file)
                     os.unlink(tmp_file)
                 else:
                     out_file = path_from_url(self.out_path, url)
+                    msg = "File looks good. Moving {} to {}".format(tmp_file,
+                                                                    out_file)
+                    logger.info(msg)
                     os.rename(tmp_file, out_file)
             else:
                 success = False
@@ -222,8 +152,6 @@ class MirrorGina(object):
                 msg = 'Bad checksum: %s != %s (%d bytes)'
                 errmsg = msg % (file_md5, md5, size)
                 os.unlink(tmp_file)
-
-            self._log_sighting(tmp_file, success, message=errmsg)
 
 
 def path_from_url(base, url):
@@ -239,7 +167,7 @@ def main():
 
     global logger
     logger = tutil.setup_logging("filefetcher errors")
-    logger.setLevel(logging.getLevelName('INFO'))
+    #logger.setLevel(logging.getLevelName('INFO'))
     multiprocessing_logging.install_mp_handler()
 
     config_file = tutil.get_env_var('MIRROR_GINA_CONFIG')

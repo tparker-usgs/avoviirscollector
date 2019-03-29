@@ -27,7 +27,8 @@ setup(
         'https://github.com/tparker-usgs/py-single/tarball/py3#egg=single-1.0.0'
     ],
     install_requires=[
-        'pycurl'
+        'pycurl',
+        'h5py'
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

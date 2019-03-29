@@ -2,4 +2,4 @@ pyopenssl
 pycurl
 requests
 python-dateutil
-tomputils>=1.1.4
+tomputils>=1.12.15

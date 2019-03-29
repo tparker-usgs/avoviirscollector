@@ -1,7 +1,7 @@
 base-dir: /Users/tomp/data
 
 defaults: &DEFAULTS
-  connection_count: 5
+  connection_count: 1
   backfill_days: 2
 
 viirs: &VIIRS
