@@ -1,0 +1,1 @@
+https://github.com/tparker-usgs/py-single/tarball/py3#egg=single-1.0.0

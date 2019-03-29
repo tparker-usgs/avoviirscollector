@@ -1,0 +1,3 @@
+[console_scripts]
+mirror_gina = rsCollectors.mirror_gina:main
+

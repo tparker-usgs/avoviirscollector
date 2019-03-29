@@ -22,55 +22,28 @@ import os.path
 import os
 import posixpath
 from datetime import timedelta, datetime
-from urlparse import urlparse
-import cStringIO
+#from urlparse import urlparse
 import pycurl
 import tomputils.mattermost as mm
+import tomputils.util as tutil
 import hashlib
 import socket
-import viirs
-from db import Db
-import h5py
-from tomputils.downloader import fetch
+#import viirs
+#from db import Db
+#import h5py
+#from tomputils.downloader import fetch
+#import multiprocessing_logging
 
-DEFAULT_BACKFILL = 2
-DEFAULT_NUM_CONN = 5
 
-INSTRUMENTS = {
-    'viirs': {
-        'name': 'viirs',
-        'level': 'level1',
-        'out_path': 'viirs/sdr',
-        'match': '/(GMTCO|SVM03|SVM04|SVM05|SVM15|SVM16)_'
-    },
-    'viirs_hr': {
-        'name': 'viirs',
-        'level': 'level1',
-        'out_path': 'viirs/sdr',
-        'match': '/(GITCO|SVI01|SVI04|SVI05)_'
-    },
-    'viirs_dnb': {
-        'name': 'viirs',
-        'level': 'level1',
-        'out_path': 'viirs/sdr',
-        'match': '/(GDNBO|SVDNB)_'
-    }
-
-}
-
-FACILITIES = ('uafgina', 'gilmore')
-SATELLITES = ('snpp', 'noaa20')
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
-OUT_DIR = os.path.join(os.environ['BASE_DIR'], 'data')
-TMP_DIR = os.path.join(os.environ['BASE_DIR'], 'data/temp')
-DB_DIR = os.path.join(os.environ['BASE_DIR'], 'db')
+OUT_DIR = os.path.join(os.environ['BASE_DIR'])
+TMP_DIR = os.path.join(os.environ['BASE_DIR'])
 
 
 class MirrorGina(object):
-    def __init__(self, args):
-        self.args = args
-        self.logger = self._setup_logging()
+    def __init__(self, config):
+        self.config = config
 
         # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
         # the libcurl tutorial for more info.
@@ -79,53 +52,7 @@ class MirrorGina(object):
         except ImportError:
             pass
 
-        self._instrument = INSTRUMENTS[args.instrument]
-        self.logger.debug("instrument: %s", self._instrument)
-
-        self._satellite = args.satellite
-        self.logger.debug("satellite: %s", self._satellite)
-
-        self._num_conn = args.num_conn
-        self.logger.debug("num_conn: %s", self._num_conn)
-
-        self._backfill = args.backfill
-        self.logger.debug("backfill: %s", self._backfill)
-
-        self.out_path = os.path.join(OUT_DIR, self._instrument['out_path'],
-                                     self.args.facility)
-        if not os.path.exists(self.out_path):
-            self.logger.debug("Making out dir " + self.out_path)
-            os.makedirs(self.out_path)
-
-        self.tmp_path = os.path.join(TMP_DIR, self._instrument['out_path'],
-                                     self.args.facility)
-        if not os.path.exists(self.tmp_path):
-            self.logger.debug("Making out dir " + self.tmp_path)
-            os.makedirs(self.tmp_path)
-
-        self.conn = Db(DB_DIR)
-        self.mattermost = mm.Mattermost()
-        # self.mattermost.set_log_level(logging.DEBUG)
-
         self.hostname = socket.gethostname()
-
-    def _setup_logging(self):
-        logger = logging.getLogger('MirrorGina')
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
-
-        if self.args.verbose:
-            logging.getLogger().setLevel(logging.DEBUG)
-            logger.info("Verbose logging")
-        else:
-            logging.getLogger().setLevel(logging.INFO)
-
-        return logger
 
     def get_file_list(self):
         self.logger.debug("fetching files")
@@ -305,33 +232,19 @@ def path_from_url(base, url):
     return os.path.join(base, filename)
 
 
-def arg_parse():
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-n", "--num_conn",
-                        help="# of concurrent connections", type=int,
-                        default=DEFAULT_NUM_CONN)
-    parser.add_argument("-b", "--backfill",
-                        help="# of days to back fill",
-                        type=int, default=DEFAULT_BACKFILL)
-    parser.add_argument("-v", "--verbose",
-                        help="Verbose logging",
-                        action='store_true')
-    parser.add_argument('-f', '--facility', choices=FACILITIES,
-                        help="facility to query", required=True)
-    parser.add_argument('-s', '--satellite', choices=SATELLITES,
-                        help="satellite to query", required=True)
-    parser.add_argument('instrument', choices=INSTRUMENTS.keys(),
-                        help="instrument to query")
-
-    return parser.parse_args()
-
-
 def main():
-    args = arg_parse()
+    # let ctrl-c work as it should.
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    mirror_gina = MirrorGina(args)
-    mirror_gina.fetch_files()
+    global logger
+    logger = tutil.setup_logging("filefetcher errors")
+    multiprocessing_logging.install_mp_handler()
+
+    config_file = tutil.get_env_var('MIRROR_GINA_CONFIG')
+    config = tutil.parse_config(config_file)
+
+    for queue in config['queues']:
+        logger.info("Launching queueu: {}", queue['name'])
 
 
 if __name__ == "__main__":
