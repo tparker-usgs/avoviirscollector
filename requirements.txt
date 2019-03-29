@@ -1,0 +1,5 @@
+pyopenssl
+pycurl
+requests
+python-dateutil
+tomputils>=1.1.4
