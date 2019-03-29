@@ -28,18 +28,20 @@ import tomputils.mattermost as mm
 import tomputils.util as tutil
 import hashlib
 import socket
-#import viirs
+from io import BytesIO
+from rsCollectors import viirs
 #from db import Db
 #import h5py
 #from tomputils.downloader import fetch
 import multiprocessing_logging
-
+from functools import cmp_to_key
 
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
 
 class MirrorGina(object):
     def __init__(self, base_dir, config):
+        self.base_dir = base_dir
         self.config = config
 
         # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
@@ -52,20 +54,20 @@ class MirrorGina(object):
         self.hostname = socket.gethostname()
 
     def get_file_list(self):
-        self.logger.debug("fetching files")
-        backfill = timedelta(days=self._backfill)
+        logger.debug("fetching files")
+        backfill = timedelta(days=self.config['backfill_days'])
         end_date = datetime.utcnow() + timedelta(days=1)
         start_date = end_date - backfill
 
         url = GINA_URL
         url += '&start_date=' + start_date.strftime('%Y-%m-%d')
         url += '&end_date=' + end_date.strftime('%Y-%m-%d')
-        url += '&sensors[]=' + self._instrument['name']
-        url += '&processing_levels[]=' + self._instrument['level']
-        url += '&facilities[]=' + self.args.facility
-        url += '&satellites[]=' + self.args.satellite
-        self.logger.debug("URL: %s", url)
-        buf = cStringIO.StringIO()
+        url += '&sensors[]=' + self.config['sensor']
+        url += '&processing_levels[]=' + self.config['level']
+        url += '&facilities[]=' + self.config['facility']
+        url += '&satellites[]=' + self.config['satellite']
+        logger.debug("URL: %s", url)
+        buf = BytesIO()
 
         c = pycurl.Curl()
         c.setopt(c.URL, url)
@@ -75,9 +77,10 @@ class MirrorGina(object):
         files = json.loads(buf.getvalue())
         buf.close()
 
-        self.logger.info("Found %s files", len(files))
-        files = sorted(files, key=lambda k: k['url'],
-                       cmp=viirs.filename_comparator)
+        logger.info("Found %s files", len(files))
+        files.sort(key=cmp_to_key(lambda a,b:
+                                  viirs.filename_comparator(a['url'],
+                                                              b['url'])))
         return files
 
     def queue_files(self, file_list):
@@ -194,11 +197,11 @@ class MirrorGina(object):
         for file in file_queue:
             url = file['url']
             tmp_file = path_from_url(self.tmp_path, url)
-            self.logger.debug("Fetching %s from %s" % (tmp_file, url))
+            logger.debug("Fetching %s from %s" % (tmp_file, url))
             fetch(url, tmp_file)
             md5 = file['md5sum']
             file_md5 = hashlib.md5(open(tmp_file, 'rb').read()).hexdigest()
-            self.logger.debug("MD5 %s : %s" % (md5, file_md5))
+            logger.debug("MD5 %s : %s" % (md5, file_md5))
 
             if md5 == file_md5:
                 try:
@@ -240,9 +243,13 @@ def main():
     config_file = tutil.get_env_var('MIRROR_GINA_CONFIG')
     config = tutil.parse_config(config_file)
 
+    base_dir = config['base-dir']
+    logger.debug("base-dir: %s", base_dir)
+
     for queue in config['queues']:
         logger.info("Launching queueu: %s", queue['name'])
-
+        mirror_gina = MirrorGina(base_dir, queue)
+        mirror_gina.fetch_files()
 
 if __name__ == "__main__":
     main()

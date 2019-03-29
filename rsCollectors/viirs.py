@@ -73,10 +73,10 @@ def filename_comparator(name1, name2):
 
 
 def main():
-    print Viirs("test/SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5")
-    print filename_comparator(
+    print(Viirs("test/SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5"))
+    print(filename_comparator(
         "test/SVM01_npp_d20130117_t1959265_e2100506_b06349_c20130118032130407525_noaa_ops.h5",
-        "test2/SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5")
+        "test2/SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5"))
 
 if __name__ == "__main__":
     main()

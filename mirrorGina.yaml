@@ -6,7 +6,7 @@ defaults: &DEFAULTS
 
 viirs: &VIIRS
   <<: *DEFAULTS
-  name: viirs
+  sensor: viirs
   level: level1
   out_path: viirs/sdr
   facility: gilmore
