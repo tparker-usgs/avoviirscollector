@@ -22,7 +22,7 @@ import os.path
 import os
 import posixpath
 from datetime import timedelta, datetime
-#from urlparse import urlparse
+from urllib.parse import urlparse
 import pycurl
 import tomputils.mattermost as mm
 import tomputils.util as tutil
@@ -32,7 +32,7 @@ from io import BytesIO
 from rsCollectors import viirs
 #from db import Db
 #import h5py
-#from tomputils.downloader import fetch
+from tomputils.downloader import fetch
 import multiprocessing_logging
 from functools import cmp_to_key
 
@@ -42,7 +42,9 @@ GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
 class MirrorGina(object):
     def __init__(self, base_dir, config):
         self.base_dir = base_dir
+        self.tmp_path = os.path.join(base_dir, 'tmp')
         self.config = config
+        self.out_path = os.path.join(self.base_dir, self.config['out_path'])
 
         # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
         # the libcurl tutorial for more info.
@@ -85,26 +87,26 @@ class MirrorGina(object):
 
     def queue_files(self, file_list):
         queue = []
-        pattern = re.compile(self._instrument['match'])
-        self.logger.debug("%d files before pruning", len(file_list))
+        pattern = re.compile(self.config['match'])
+        logger.debug("%d files before pruning", len(file_list))
         for new_file in file_list:
             out_file = path_from_url(self.out_path, new_file['url'])
             # tmp_path = self.path_from_url(self.tmp_path, new_file['url'])
 
             if pattern.search(out_file) and not os.path.exists(out_file):
-                self.logger.debug("Queueing %s", new_file['url'])
+                logger.debug("Queueing %s", new_file['url'])
                 queue.append(new_file)
             else:
-                self.logger.debug("Skipping %s", new_file['url'])
+                logger.debug("Skipping %s", new_file['url'])
 
-        self.logger.debug("%d files after pruning", len(queue))
+        logger.debug("%d files after pruning", len(queue))
         return queue
 
     def create_multi(self):
         m = pycurl.CurlMulti()
         m.handles = []
         for i in range(self._num_conn):
-            self.logger.debug("creating curl object")
+            logger.debug("creating curl object")
             c = pycurl.Curl()
             c.fp = None
             c.setopt(pycurl.FOLLOWLOCATION, 1)
@@ -158,7 +160,6 @@ class MirrorGina(object):
                                                           self.args.facility)
                 msg = '\n**Granules seen from orbit %d** %d'
                 orb_msg += msg % (granule.orbit - 1, count)
-                self.mattermost.post(orb_msg)
 
             # post new granule message
             if gran_proc_time is None:
@@ -238,6 +239,7 @@ def main():
 
     global logger
     logger = tutil.setup_logging("filefetcher errors")
+    logger.setLevel(logging.getLevelName('INFO'))
     multiprocessing_logging.install_mp_handler()
 
     config_file = tutil.get_env_var('MIRROR_GINA_CONFIG')

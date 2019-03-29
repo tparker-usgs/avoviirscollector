@@ -1,4 +1,4 @@
-base-dir: /data
+base-dir: /Users/tomp/data
 
 defaults: &DEFAULTS
   connection_count: 5
