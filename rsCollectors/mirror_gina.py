@@ -33,9 +33,12 @@ import h5py
 from tomputils.downloader import Downloader
 import multiprocessing_logging
 from functools import cmp_to_key
+from multiprocessing import Process
+
 
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
+
 
 class MirrorGina(object):
     def __init__(self, base_dir, config):
@@ -161,6 +164,24 @@ def path_from_url(base, url):
     return os.path.join(base, filename)
 
 
+def poll_queues():
+    base_dir = global_config['base-dir']
+    logger.debug("base-dir: %s", base_dir)
+
+    procs = []
+    for queue in global_config['queues']:
+        if 'disabled' in queue and queue['disabled']:
+            logger.info("Queue %s is disabled, skiping it.", queue['name'])
+        else:
+            logger.info("Launching queueu: %s", queue['name'])
+            mirror_gina = MirrorGina(base_dir, queue)
+            p = Process(target=mirror_gina.fetch_files, args=())
+            procs.append(p)
+            p.start()
+
+    return procs
+
+
 def main():
     # let ctrl-c work as it should.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -171,15 +192,16 @@ def main():
     multiprocessing_logging.install_mp_handler()
 
     config_file = tutil.get_env_var('MIRROR_GINA_CONFIG')
-    config = tutil.parse_config(config_file)
+    global global_config
+    global_config = tutil.parse_config(config_file)
 
-    base_dir = config['base-dir']
-    logger.debug("base-dir: %s", base_dir)
+    procs = poll_queues()
+    for proc in procs:
+        proc.join()
 
-    for queue in config['queues']:
-        logger.info("Launching queueu: %s", queue['name'])
-        mirror_gina = MirrorGina(base_dir, queue)
-        mirror_gina.fetch_files()
+    logger.debug("That's all for now, bye.")
+    logging.shutdown()
+
 
 if __name__ == "__main__":
     main()
