@@ -1,6 +1,6 @@
 #!/bin/sh
 
-git add VERSION
+git add rsCollectors/__init__.py
 git commit -m 'version bump'
 git push \
 && git tag `cat VERSION` \
