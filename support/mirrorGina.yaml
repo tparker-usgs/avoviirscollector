@@ -2,7 +2,7 @@
 a YAML config, this is just one example.
 
 # Local filesystem path to my data directory, I'll do all my work here.
-base-dir: /Users/tomp/data
+base-dir: /rsdata
 
 # build up defaults as we go along. NOt needed, but keeps things simple.
 defaults: &DEFAULTS
