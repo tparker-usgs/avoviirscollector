@@ -2,4 +2,4 @@
 */5 * * * * configupdater
 
 # Grab interesting files from GINA
-*/5 * * * * cd /app/collectors ; single.py -f /tmp/gina-snpp.flock -c mirror_gina > /dev/null 2>&1
+*/5 * * * * cd /app/collectors ; single.py -f /tmp/mirror_gina.flock -c mirror_gina 
