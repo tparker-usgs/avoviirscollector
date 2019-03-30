@@ -21,6 +21,6 @@ RUN python setup.py install
 
 # not using requirements.txt because order matters
 RUN pip install --default-timeout=60 Cython
-RUN pip install --default-timeout=60 pysingle
+RUN pip install --default-timeout=60 single
 
 CMD ["supercronic", "cron-collectors"]
