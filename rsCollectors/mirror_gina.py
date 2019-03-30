@@ -33,6 +33,7 @@ from tomputils.downloader import Downloader
 import multiprocessing_logging
 from functools import cmp_to_key
 from multiprocessing import Process
+from single import Lock
 
 
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
@@ -160,18 +161,41 @@ def path_from_url(base, url):
     return os.path.join(base, filename)
 
 
-def poll_queues():
+def poll_queue(config):
     base_dir = global_config['base-dir']
     logger.debug("base-dir: %s", base_dir)
 
+    lock_file = os.path.join(base_dir, "tmp", "{}.lock".format(config['name']))
+
+    lock = Lock(lock_file)
+    gotlock, pid = lock.lock_pid()
+    if not gotlock:
+        logger.info("Queue {} locked, skipping".format(config['name']))
+        return
+
+    try:
+        logger.info("Launching queueu: %s", config['name'])
+        mirror_gina = MirrorGina(base_dir, config)
+        mirror_gina.fetch_files()
+    finally:
+        logger.info("All done with queue %s.", config['name'])
+        for handler in logger.handlers:
+            handler.flush()
+
+        if gotlock:
+            try:
+                lock.unlock()
+            except AttributeError:
+                pass
+
+
+def poll_queues():
     procs = []
     for queue in global_config['queues']:
         if 'disabled' in queue and queue['disabled']:
             logger.info("Queue %s is disabled, skiping it.", queue['name'])
         else:
-            logger.info("Launching queueu: %s", queue['name'])
-            mirror_gina = MirrorGina(base_dir, queue)
-            p = Process(target=mirror_gina.fetch_files, args=())
+            p = Process(target=poll_queue, args=(queue,))
             procs.append(p)
             p.start()
 

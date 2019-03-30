@@ -27,7 +27,8 @@ setup(
         'pycurl',
         'tomputils>=1.12.16',
         'multiprocessing_logging',
-        'h5py'
+        'h5py',
+        'single'
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
