@@ -28,11 +28,12 @@ setup(
     ],
     install_requires=[
         'pycurl',
+        'tomputils>=1.12.16',
+        'multiprocessing_logging',
         'h5py'
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
-    scripts=['bin/singleTimeout.sh'],
     entry_points={
         'console_scripts': [
             'mirror_gina = rsCollectors.mirror_gina:main'

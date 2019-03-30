@@ -1,5 +1,0 @@
-pyopenssl
-pycurl
-requests
-python-dateutil
-tomputils>=1.12.15

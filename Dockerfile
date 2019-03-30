@@ -13,15 +13,14 @@ RUN curl -fsSLO "$SUPERCRONIC_URL" \
  && ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
 
 WORKDIR /app/collectors
-ADD requirements.txt .
-RUN pip install --default-timeout=60 --no-cache-dir -r requirements.txt # 1
+COPY cron-collectors .
+COPY setup.cfg .
+COPY setup.py .
+COPY rsCollectors rsCollectors
+RUN python setup.py install
 
-ADD bin bin
-# 1
-ADD viirs viirs
-ADD cron-collectors /tmp/cron-collectors
-ADD run_crond.sh  .
-RUN chmod 755 run_crond.sh
+# not using requirements.txt because order matters
+RUN pip install --default-timeout=60 Cython
+RUN pip install --default-timeout=60 pysingle
 
-#CMD ["cron","-f"]
-CMD ["/app/collectors/run_crond.sh"]
+CMD ["supercronic", "cron-collectors"]
