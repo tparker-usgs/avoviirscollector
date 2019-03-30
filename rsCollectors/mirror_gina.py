@@ -138,6 +138,7 @@ class MirrorGina(object):
                     h5py.File(tmp_file, 'r')
                 except Exception as e:
                     logger.info('Bad HDF5 file %s', tmp_file)
+                    logger.info(e)
                     os.unlink(tmp_file)
                 else:
                     out_file = path_from_url(self.out_path, url)
