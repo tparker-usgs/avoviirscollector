@@ -2,7 +2,8 @@
 """
 Module parsing a VIIRS filename.
 
-From http://rammb.cira.colostate.edu/projects/npp/Beginner_Guide_to_VIIRS_Imagery_Data.pdf
+From http://rammb.cira.colostate.edu/projects/npp/
+            Beginner_Guide_to_VIIRS_Imagery_Data.pdf
 
 SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5
   A    B    C          D      E        F           G                H
@@ -28,7 +29,8 @@ class Viirs(object):
         parts = self.basename.split('_')
         self.channel = parts[0]
         self.satellite = parts[1]
-        self.start = datetime.strptime(parts[2] + "_" + parts[3], 'd%Y%m%d_t%H%M%S%f')
+        self.start = datetime.strptime(parts[2] + "_" + parts[3],
+                                       'd%Y%m%d_t%H%M%S%f')
         self.end = datetime.strptime(parts[4], 'e%H%M%S%f')
         self.orbit = int(parts[5][1:])
         self.proc_date = datetime.strptime(parts[6], 'c%Y%m%d%H%M%S%f')
@@ -47,11 +49,12 @@ class Viirs(object):
 
 def filename_comparator(name1, name2):
     """
-    Sort VIIRS filenames. Decreasing by orbit, then increasing by time, then alphabetical (geo before data).  
-    
-    :param name1: 
-    :param name2: 
-    :return: 
+    Sort VIIRS filenames. Decreasing by orbit, then increasing by time,
+    then alphabetical (geo before data).
+
+    :param name1:
+    :param name2:
+    :return:
     """
     v1 = Viirs(name1)
     v2 = Viirs(name2)
@@ -70,13 +73,3 @@ def filename_comparator(name1, name2):
         return -1
     else:
         return 0
-
-
-def main():
-    print(Viirs("test/SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5"))
-    print(filename_comparator(
-        "test/SVM01_npp_d20130117_t1959265_e2100506_b06349_c20130118032130407525_noaa_ops.h5",
-        "test2/SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5"))
-
-if __name__ == "__main__":
-    main()

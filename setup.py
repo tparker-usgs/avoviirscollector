@@ -23,9 +23,6 @@ setup(
         "Topic :: Software Development :: Libraries",
         "License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
     ],
-    dependency_links=[
-        'https://github.com/tparker-usgs/py-single/tarball/py3#egg=single-1.0.0'
-    ],
     install_requires=[
         'pycurl',
         'tomputils>=1.12.16',

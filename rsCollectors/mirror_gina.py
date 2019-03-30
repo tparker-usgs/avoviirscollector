@@ -13,7 +13,6 @@
 """
 
 
-import argparse
 import re
 import json
 import signal
@@ -82,9 +81,9 @@ class MirrorGina(object):
         buf.close()
 
         logger.info("Found %s files", len(files))
-        files.sort(key=cmp_to_key(lambda a,b:
+        files.sort(key=cmp_to_key(lambda a, b:
                                   viirs.filename_comparator(a['url'],
-                                                              b['url'])))
+                                                            b['url'])))
         return files
 
     def queue_files(self, file_list):
@@ -137,10 +136,7 @@ class MirrorGina(object):
             if md5 == file_md5:
                 try:
                     h5py.File(tmp_file, 'r')
-                    success = True
-                    errmsg = None
-                except:
-                    success = False
+                except Exception as e:
                     logger.info('Bad HDF5 file %s', tmp_file)
                     os.unlink(tmp_file)
                 else:
@@ -150,10 +146,9 @@ class MirrorGina(object):
                     logger.info(msg)
                     os.rename(tmp_file, out_file)
             else:
-                success = False
                 size = os.path.getsize(tmp_file)
                 msg = 'Bad checksum: %s != %s (%d bytes)'
-                errmsg = msg % (file_md5, md5, size)
+                logger.info(msg, file_md5, md5, size)
                 os.unlink(tmp_file)
 
 
@@ -188,7 +183,7 @@ def main():
 
     global logger
     logger = tutil.setup_logging("filefetcher errors")
-    #logger.setLevel(logging.getLevelName('INFO'))
+    # logger.setLevel(logging.getLevelName('INFO'))
     multiprocessing_logging.install_mp_handler()
 
     config_file = tutil.get_env_var('MIRROR_GINA_CONFIG')
