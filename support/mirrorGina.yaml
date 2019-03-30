@@ -1,10 +1,10 @@
 # This is a YAML configuration file. There are lots of ways to write
-a YAML config, this is just one example.
+# a YAML config, this is just one example.
 
 # Local filesystem path to my data directory, I'll do all my work here.
 base-dir: /rsdata
 
-# build up defaults as we go along. NOt needed, but keeps things simple.
+# build up defaults as we go along. Not needed, but keeps things simple.
 defaults: &DEFAULTS
   connection_count: 1 # number of connections to use per file.
   backfill_days: 2 # how far back should I look?
@@ -18,7 +18,7 @@ viirs: &VIIRS
 
 viirs-moderate: &VIIRS-MODERATE
   <<: *VIIRS
-  match: '/(GMTCO|SVM03|SVM04|SVM05|SVM15|SVM16)_' # interesting files
+  match: '/(GMTCO|SVM03|SVM04|SVM05|SVM15|SVM16)_' # interesting filenames
 
 viirs-imagery: &VIIRS-IMAGERY
   <<: *VIIRS
