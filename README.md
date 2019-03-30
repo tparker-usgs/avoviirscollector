@@ -49,3 +49,7 @@ Here is an example service stanza for use with docker-compose.
           target: /rsdata
           volume:
             nocopy: true
+
+mirror_gina Configuration
+-------------
+I use a single YAML configuration file. A annotated example is [provided](https://github.com/tparker-usgs/rsCollectors/blob/master/support/mirrorGina.yaml).
