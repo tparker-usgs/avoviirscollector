@@ -3,3 +3,6 @@
 
 # Grab interesting files from GINA
 */5 * * * * mirror_gina 
+
+# cleanup
+0 0 * * * $DAYS_RETENTION && find $RSPROCESSING_BASE -mtime +$DAYS_RETENTION -exec rm {} \;

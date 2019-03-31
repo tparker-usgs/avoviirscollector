@@ -7,7 +7,7 @@ Docker container to collect remote sensing data at AVO
 
 Environment variables
 ---------------------
-I look to the environment for my bootstrap config. I require two enironrment variables.
+I look to the environment for my bootstrap config. I require three enironrment variables.
   * _RSPROCESSING_BASE_ local filesystem path of my working directory
   * _MIRROR_GINA_CONFIG_ Local filesystem path of the configuration file.
   * _CU_CONFIG_URL_ URL to a configupdater configuration file.
@@ -22,6 +22,9 @@ I will email logged errors if desired.
   * _LOG_SENDER_ From: address
   * _LOG_RECIPIENT_ To: address
 
+Optionally, I'll cleanup downloaded files after some number of days.
+  * _DAYS_RETENTION_ Maximum file retention in $RSPROCESSING_BASE
+
 docker-compose
 --------------
 Here is an example service stanza for use with docker-compose.
@@ -32,6 +35,7 @@ Here is an example service stanza for use with docker-compose.
       environment:
         - RSPROCESSING_BASE=/rsdata
         - MIRROR_GINA_CONFIG=/tmp/mirrorGina.yaml
+        - DAYS_RETENTION=7 
         - PYTHONUNBUFFERED=1
         - MAILHOST=smtp.usgs.gov
         - LOG_SENDER=avoauto@usgs.gov
