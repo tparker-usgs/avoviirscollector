@@ -27,10 +27,10 @@ viirs-dnb: &VIIRS-DNB
   match: '/(GDNBO|SVDNB)_'
 
 # Here's the good stuff. Each item in the queue list will be processed
-# concurrently in reverse chronilogical order. Things can get aggressive
+# concurrently in reverse chronological order. Things can get aggressive
 # quickly, think about how many concurrent connections you're creating.
 # potential number of connections = (number of queues) * connection_count
-# It typically won't be that many, unless downloads get behind. Not all
+# It typically won't be that many unless downloads get behind, as not all
 # satellites pass by at the same time.
 queues:
   - name: viirs-moderate-snpp

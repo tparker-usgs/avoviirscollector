@@ -58,4 +58,4 @@ Here is an example service stanza for use with docker-compose.
 
 mirror_gina Configuration
 -------------
-I use a single YAML configuration file. An annotated example is [provided](https://raw.githubusercontent.com/tparker-usgs/rsCollectors/master/support/mirrorGina.yaml).
+I use a single YAML configuration file, an annotated example is [provided](https://raw.githubusercontent.com/tparker-usgs/rsCollectors/master/support/mirrorGina.yaml).
