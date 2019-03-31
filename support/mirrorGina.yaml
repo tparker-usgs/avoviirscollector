@@ -5,6 +5,7 @@
 defaults: &DEFAULTS
   connection_count: 1 # number of connections to use per file.
   backfill_days: 2 # how far back should I look?
+  disabled: false # Toggle to temporarily skip a queue
 
 viirs: &VIIRS
   <<: *DEFAULTS
