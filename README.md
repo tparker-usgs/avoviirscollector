@@ -12,7 +12,7 @@ I look to the environment for my bootstrap config. I require three enironrment v
   * _MIRROR_GINA_CONFIG_ Local filesystem path of the configuration file.
   * _CU_CONFIG_URL_ URL to a configupdater configuration file.
 
-If a authentication is required to retrieve the configupdater configuration, it can be specified in the environment.
+If authentication is required to retrieve the configupdater configuration it must be specified in the environment.
   * _CU_USER_ Username, if required to retrieve configupdater config file.
   * _CU_PASSWORD_ Password, if required to retrieve configupdater config file.
 
