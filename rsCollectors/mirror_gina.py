@@ -162,8 +162,8 @@ def path_from_url(base, url):
 
 
 def poll_queue(config):
-    base_dir = global_config['base-dir']
-    logger.debug("base-dir: %s", base_dir)
+    base_dir = tutil.get_env_var('RSPROCESSING_BASE')
+    logger.debug("RSPROCESSING_BASE: %s", base_dir)
 
     lock_file = os.path.join(base_dir, "tmp", "{}.lock".format(config['name']))
 

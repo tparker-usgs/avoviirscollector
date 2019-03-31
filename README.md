@@ -8,6 +8,7 @@ Docker container to collect remote sensing data at AVO
 Environment variables
 ---------------------
 I look to the environment for my bootstrap config. I require two enironrment variables.
+  * _RSPROCESSING_BASE_ local filesystem path of my working directory
   * _MIRROR_GINA_CONFIG_ Local filesystem path of the configuration file.
   * _CU_CONFIG_URL_ URL to a configupdater configuration file.
 
@@ -29,6 +30,7 @@ Here is an example service stanza for use with docker-compose.
       image: "tparkerusgs/rscollectors:release-2.0.2"
       user: "2001"
       environment:
+        - RSPROCESSING_BASE=/rsdata
         - MIRROR_GINA_CONFIG=/tmp/mirrorGina.yaml
         - PYTHONUNBUFFERED=1
         - MAILHOST=smtp.usgs.gov

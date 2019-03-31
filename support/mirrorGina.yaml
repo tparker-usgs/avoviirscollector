@@ -1,9 +1,6 @@
 # This is a YAML configuration file. There are lots of ways to write
 # a YAML config, this is just one example.
 
-# Local filesystem path to my data directory, I'll do all my work here.
-base-dir: /rsdata
-
 # build up defaults as we go along. Not needed, but keeps things simple.
 defaults: &DEFAULTS
   connection_count: 1 # number of connections to use per file.
