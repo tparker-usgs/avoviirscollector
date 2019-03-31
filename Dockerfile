@@ -16,7 +16,7 @@ WORKDIR /app/collectors
 COPY cron-collectors .
 COPY setup.cfg .
 COPY setup.py .
-COPY rsCollectors rsCollectors
+COPY rscollectors rscollectors
 RUN python setup.py install
 
 CMD ["supercronic", "cron-collectors"]
