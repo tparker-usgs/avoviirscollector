@@ -27,7 +27,7 @@ import tomputils.util as tutil
 import hashlib
 import socket
 from io import BytesIO
-from rsCollectors import viirs
+from rscollectors import viirs
 import h5py
 from tomputils.downloader import Downloader
 import multiprocessing_logging

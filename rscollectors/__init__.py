@@ -5,7 +5,7 @@
 #
 # -----------------------------------------------------------------------------
 """
-rsCollectors
+rscollectors
 =========
 
 Fetch remote sensing data at AVO

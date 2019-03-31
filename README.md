@@ -1,7 +1,7 @@
-rsCollectors
+rscollectors
 ============
-[![Build Status](https://travis-ci.org/tparker-usgs/rsCollectors.svg?branch=master)](https://travis-ci.org/tparker-usgs/rsCollectors)
-[![Code Climate](https://codeclimate.com/github/tparker-usgs/rsCollectors/badges/gpa.svg)](https://codeclimate.com/github/tparker-usgs/rsCollectors)
+[![Build Status](https://travis-ci.org/tparker-usgs/rscollectors.svg?branch=master)](https://travis-ci.org/tparker-usgs/rscollectors)
+[![Code Climate](https://codeclimate.com/github/tparker-usgs/rscollectors/badges/gpa.svg)](https://codeclimate.com/github/tparker-usgs/rscollectors)
 
 Docker container to collect remote sensing data at AVO
 
@@ -58,4 +58,4 @@ Here is an example service stanza for use with docker-compose.
 
 mirror_gina Configuration
 -------------
-I use a single YAML configuration file, an annotated example is [provided](https://raw.githubusercontent.com/tparker-usgs/rsCollectors/master/support/mirrorGina.yaml).
+I use a single YAML configuration file, an annotated example is [provided](https://raw.githubusercontent.com/tparker-usgs/rscollectors/master/support/mirrorGina.yaml).

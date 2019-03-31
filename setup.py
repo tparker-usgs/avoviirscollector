@@ -1,21 +1,21 @@
 """
-rsCollectors -- scripts to retrieve remote sensing data at AVO
+rscollectors -- scripts to retrieve remote sensing data at AVO
 
 """
 
 from setuptools import setup, find_packages
-from rsCollectors import __version__
+from rscollectors import __version__
 
 DOCSTRING = __doc__.split("\n")
 
 setup(
-    name="rsCollectors",
+    name="rscollectors",
     version=__version__,
     author="Tom Parker",
     author_email="tparker@usgs.gov",
     description=(DOCSTRING[1]),
     license="CC0",
-    url="http://github.com/tparker-usgs/rsCollectors",
+    url="http://github.com/tparker-usgs/rscollectors",
     packages=find_packages(),
     long_description='\n'.join(DOCSTRING[3:]),
     classifiers=[
@@ -34,7 +34,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'mirror_gina = rsCollectors.mirror_gina:main'
+            'mirror_gina = rscollectors.mirror_gina:main'
         ]
     }
 )
