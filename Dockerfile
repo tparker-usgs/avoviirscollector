@@ -1,4 +1,4 @@
-FROM tparkerusgs/avopytroll:1.4.0
+FROM tparkerusgs/avopytroll:release-1.4.0
 
 WORKDIR /app
 COPY cron-collectors .
