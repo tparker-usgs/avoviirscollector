@@ -16,4 +16,4 @@ Fetch remote sensing data at AVO
 """
 
 
-__version__ = "2.1.1"
+__version__ = "2.2.0"
