@@ -59,3 +59,7 @@ Here is an example service stanza for use with docker-compose.
 mirror_gina Configuration
 -------------
 I use a single YAML configuration file, an annotated example is [provided](https://raw.githubusercontent.com/tparker-usgs/rscollectors/master/support/mirrorGina.yaml).
+
+known issues
+============
+  * supervisord log file perms are super restrictive. Watching [issue #123](https://github.com/Supervisor/supervisor/issues/123) for resolution.
