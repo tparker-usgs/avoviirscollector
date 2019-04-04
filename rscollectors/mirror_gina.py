@@ -101,7 +101,7 @@ class MirrorGina(object):
             else:
                 logger.debug("Skipping %s", new_file['url'])
 
-        logger.debug("%d files after pruning", len(queue))
+        logger.info("%d files after pruning", len(queue))
         return queue
 
     def create_multi(self):
