@@ -9,4 +9,4 @@ RUN python setup.py install
 
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
-CMD ["/usr/local/bin/supervisord"]
+CMD ["sh","-c","configupdater && supervisord"]
