@@ -5,6 +5,116 @@ rscollectors
 
 Docker container to collect remote sensing data at AVO
 
+Overview
+--------
+I peridically run scripts to retrieve files from remote sources and publish collections of files through a few deamons.
+
+Daemons:
+  * supervisord - launches all other deamons and keeps them running
+  * supercronic - a cron daemon which Launches periodic tasks
+  * nameserver - keeps track of active publishers on the internal messaging system and tells listeners where to find 
+                 active publishers.
+  * trollstalker - watches local directories for new files and publishes files as they're recieved
+  * segment_gatherer - listens to trollstalker and assembles files into a complete granule
+  
+Cron taks:
+  * mirror_gina - searches GINA for recent images and retrieves any found
+  * configupdater - pulls configs from a subversion repo and keeps them up to date
+  * cleanup - remove old images
+   
+supervisord
+-----------
+Launch deamons and keep them running.
+
+**logs**
+
+supervisord writes its log file to /rsdata/log/rscollectors/supervisord.log. In there will be details about when deamons
+are launched and when they die. If all is going well, it'll be a short uninteresting log file.
+
+Each deamon launched by supervisord will have two log files, capturing STDOUT and STDERR from its process. These logs 
+are placed in /rsdata/log/rscollectors with unpredictable, but easily identifiable, names.
+
+**envionment variables**
+
+  * TROLLSTALKER_CONFIG - local filesystem path to the trollstalker config
+  * SEGMENT_GATHERER_CONFIG - local filesystem path to the segment_gatherer config
+  
+**known issues**
+
+  * supervisord log file perms are super restrictive. Watching 
+    [issue #123](https://github.com/Supervisor/supervisor/issues/123) for resolution.
+
+supercronic
+-----------
+Launch periodic tasks.
+
+**config**
+
+The supercronic config is provided in the image, no tweaking needed.
+
+
+**logs**
+
+Supercronic doesn't write any task-specific log files. STDOUT and STDERR of tasks launched by supercronic are logged in
+the supercronic log files created by supervisord.
+
+nameserver
+----------
+The posttroll nameserver keeps track of topics learned from messages broadcasted by publishers and responds to queries
+from listeners looking for a topic. It has no configuration file and rarely causes trouble.
+
+trollstalker
+------------
+Uses inotify to watch for new files and publishes messages to start processing.
+
+**config**
+
+trollstalker uses a single configfile, whose location is provided as an argument by supervisord.
+
+**logs**
+
+trollstalker doesn't write any logs beyond the two created by supervisord. The STDERR log will note every file found by
+trollstalker.
+
+**quirks**
+
+  * Because trollstalker uses inotify, it must be run close to whatever retrieves files when watching a directory on a NFS 
+share. The kernel won't know about files that are created outside of it's control.
+
+segment_gatherer
+----------------
+Listens for messages from trollstalker and publishes a message when a complete granule is ready to be processed. 
+
+**quirks**
+
+  * segment_gatherer expects to find a nameserver on the localhost. Don't try to break
+
+mirror_gina
+-----------
+Searches GINA NRT for recent files and retrieves any found.
+
+**config**
+
+MIRROR_GINA_CONFIG
+
+**logs**
+
+mirror_gina doesn't write its own logfiles. look for output in the cupercronic logs.
+
+configupdater
+-------------
+
+ 
+cleanup
+-------
+
+**environemnt variables**
+  * _DAYS_RETENTION_ Maximum file retention in $RSPROCESSING_BASE
+
+old notes
+=========
+Ignore stuff under here. It's just waiting to be worked into the above text.
+
 Environment variables
 ---------------------
 I look to the environment for my bootstrap config. I require three enironrment variables.
@@ -59,7 +169,3 @@ Here is an example service stanza for use with docker-compose.
 mirror_gina Configuration
 -------------
 I use a single YAML configuration file, an annotated example is [provided](https://raw.githubusercontent.com/tparker-usgs/rscollectors/master/support/mirrorGina.yaml).
-
-known issues
-============
-  * supervisord log file perms are super restrictive. Watching [issue #123](https://github.com/Supervisor/supervisor/issues/123) for resolution.
