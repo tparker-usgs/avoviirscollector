@@ -3,11 +3,15 @@ rscollectors
 [![Build Status](https://travis-ci.org/tparker-usgs/rscollectors.svg?branch=master)](https://travis-ci.org/tparker-usgs/rscollectors)
 [![Code Climate](https://codeclimate.com/github/tparker-usgs/rscollectors/badges/gpa.svg)](https://codeclimate.com/github/tparker-usgs/rscollectors)
 
-Docker container to collect remote sensing data at AVO
+A Docker container to collect remote sensing data at AVO
+
+**I'm still under development. Some of what you see below is outdated, while other parts may be aspirational. Talk to Tom 
+before doing anything that matters.**
 
 Overview
 --------
-I peridically run scripts to retrieve files from remote sources and publish collections of files through a few deamons.
+I peridically run scripts to retrieve files from remote sources and publish collections using the 
+[posttroll](https://github.com/pytroll/posttroll) messaging system.
 
 Daemons:
   * supervisord - launches all other deamons and keeps them running
@@ -21,10 +25,20 @@ Cron taks:
   * mirror_gina - searches GINA for recent images and retrieves any found
   * configupdater - pulls configs from a subversion repo and keeps them up to date
   * cleanup - remove old images
-   
+
+Filesystems
+-----------
+All log files and data I create are written to /rsdata in the container, which I expect that to be provided as a docker
+volume. Look at the docker run command or docker-compose file for it's true locatiom.
+
 supervisord
 -----------
-Launch deamons and keep them running.
+Launch deamons and keep them running. Additional info on supervisord is available at <http://supervisord.org/>.
+
+**envionment variables**
+
+  * TROLLSTALKER_CONFIG - local filesystem path to the trollstalker config
+  * SEGMENT_GATHERER_CONFIG - local filesystem path to the segment_gatherer config
 
 **logs**
 
@@ -34,19 +48,14 @@ are launched and when they die. If all is going well, it'll be a short uninteres
 Each deamon launched by supervisord will have two log files, capturing STDOUT and STDERR from its process. These logs 
 are placed in /rsdata/log/rscollectors with unpredictable, but easily identifiable, names.
 
-**envionment variables**
+**quirks**
 
-  * TROLLSTALKER_CONFIG - local filesystem path to the trollstalker config
-  * SEGMENT_GATHERER_CONFIG - local filesystem path to the segment_gatherer config
-  
-**known issues**
-
-  * supervisord log file perms are super restrictive. Watching 
+  * supervisord log file perms are super restrictive and do not honor the umask. Watching 
     [issue #123](https://github.com/Supervisor/supervisor/issues/123) for resolution.
 
 supercronic
 -----------
-Launch periodic tasks.
+Launch periodic tasks. Additional info on supercronic is available at <https://github.com/aptible/supercronic>
 
 **config**
 
@@ -60,16 +69,23 @@ the supercronic log files created by supervisord.
 
 nameserver
 ----------
+nameserver is part of the PyTroll posttroll project. Additional info on posttrol is available at
+<https://github.com/pytroll/posttroll>.
+
 The posttroll nameserver keeps track of topics learned from messages broadcasted by publishers and responds to queries
 from listeners looking for a topic. It has no configuration file and rarely causes trouble.
 
 trollstalker
 ------------
+trollstalker is part of the PyTroll pytroll-collectors project. Additional info on pytroll-collectors is available at
+<https://github.com/pytroll/pytroll-collectors>.
+
 Uses inotify to watch for new files and publishes messages to start processing.
 
 **config**
 
-trollstalker uses a single configfile, whose location is provided as an argument by supervisord.
+trollstalker uses a single configfile, whose location is provided to supervisord in the TROLLSTALKER_CONFIG environment
+variable.
 
 **logs**
 
@@ -78,16 +94,20 @@ trollstalker.
 
 **quirks**
 
-  * Because trollstalker uses inotify, it must be run close to whatever retrieves files when watching a directory on a NFS 
-share. The kernel won't know about files that are created outside of it's control.
+  * Because trollstalker uses inotify, it must be run close to whatever retrieves files when watching a directory on a
+    NFS share. The kernel won't know about files that are created outside of it's control.
 
 segment_gatherer
 ----------------
-Listens for messages from trollstalker and publishes a message when a complete granule is ready to be processed. 
+segment_gatherer is part of the PyTroll pytroll-collectors project. Additional info on pytroll-collectors is available
+at <https://github.com/pytroll/pytroll-collectors>.
+
+Listens to messages published by trollstalker and publishes a message whenever a complete granule is ready to be
+processed. 
 
 **quirks**
 
-  * segment_gatherer expects to find a nameserver on the localhost. Don't try to break
+  * segment_gatherer expects to find a nameserver on the localhost.
 
 mirror_gina
 -----------
