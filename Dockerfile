@@ -1,6 +1,10 @@
 FROM tparkerusgs/avopytroll:release-1.4.0
 
 WORKDIR /app
+COPY segment_gatherer.ini .
+COPY trollstalker.ini .
+
+WORKDIR /app/rscollectors
 COPY cron-collectors .
 COPY setup.cfg .
 COPY setup.py .
