@@ -6,6 +6,7 @@ COPY trollstalker.ini .
 
 WORKDIR /app/avoviirscollector
 COPY cron-viirscollector .
+COPY mirrorGina.yaml .
 COPY setup.cfg .
 COPY setup.py .
 COPY avoviirscollector avoviirscollector

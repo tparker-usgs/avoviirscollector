@@ -211,7 +211,7 @@ def main():
     # logger.setLevel(logging.getLevelName('INFO'))
     multiprocessing_logging.install_mp_handler()
 
-    config_file = tutil.get_env_var('MIRROR_GINA_CONFIG')
+    config_file = '/app/avoviirscollector/mirrorGina.yaml'
     global global_config
     global_config = tutil.parse_config(config_file)
 
