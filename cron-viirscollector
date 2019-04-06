@@ -1,6 +1,3 @@
-# Gather and maintain my configs
-*/5 * * * * configupdater
-
 # Grab interesting files from GINA
 */5 * * * * mirror_gina 
 
