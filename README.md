@@ -1,9 +1,9 @@
-rscollectors
+avoviirscollector
 ============
-[![Build Status](https://travis-ci.org/tparker-usgs/rscollectors.svg?branch=master)](https://travis-ci.org/tparker-usgs/rscollectors)
-[![Code Climate](https://codeclimate.com/github/tparker-usgs/rscollectors/badges/gpa.svg)](https://codeclimate.com/github/tparker-usgs/rscollectors)
+[![Build Status](https://travis-ci.org/tparker-usgs/avoviirscollector.svg?branch=master)](https://travis-ci.org/tparker-usgs/avoviirscollector)
+[![Code Climate](https://codeclimate.com/github/tparker-usgs/avoviirscollector/badges/gpa.svg)](https://codeclimate.com/github/tparker-usgs/avoviirscollector)
 
-Docker container to collect remote sensing data at AVO
+Docker container to collect viirs data at AVO
 
 Environment variables
 ---------------------
@@ -30,7 +30,7 @@ docker-compose
 Here is an example service stanza for use with docker-compose.
 
     collectors:
-      image: "tparkerusgs/rscollectors:release-2.0.2"
+      image: "tparkerusgs/avoviirscollector:release-2.0.2"
       user: "2001"
       environment:
         - RSPROCESSING_BASE=/rsdata
@@ -58,4 +58,4 @@ Here is an example service stanza for use with docker-compose.
 
 mirror_gina Configuration
 -------------
-I use a single YAML configuration file, an annotated example is [provided](https://raw.githubusercontent.com/tparker-usgs/rscollectors/master/support/mirrorGina.yaml).
+I use a single YAML configuration file, an annotated example is [provided](https://raw.githubusercontent.com/tparker-usgs/avoviirscollector/master/support/mirrorGina.yaml).

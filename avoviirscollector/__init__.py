@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-#  Purpose: fetch remote sensing data
+#  Purpose: fetch viirs data
 #   Author: Tom Parker
 #
 # -----------------------------------------------------------------------------
 """
-rscollectors
+avoviirscollector
 =========
 
-Fetch remote sensing data at AVO
+Fetch viirs data at AVO
 
 :license:
     CC0 1.0 Universal
@@ -16,4 +16,4 @@ Fetch remote sensing data at AVO
 """
 
 
-__version__ = "2.3.0"
+__version__ = "3.0.0"
