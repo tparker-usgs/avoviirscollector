@@ -1,8 +1,8 @@
 #!/bin/sh
 
-VERSION=`python -c "import rscollectors; print(rscollectors.__version__)"`
+VERSION=`python -c "import avoviirscollector; print(avoviirscollector.__version__)"`
 echo Tagging release $VERSION
-git add rscollectors/__init__.py
+git add avoviirscollector/__init__.py
 git commit -m 'version bump'
 git push \
 && git tag $VERSION \

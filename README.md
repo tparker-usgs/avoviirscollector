@@ -42,11 +42,11 @@ Launch deamons and keep them running. Additional info on supervisord is availabl
 
 **logs**
 
-supervisord writes its log file to /rsdata/log/rscollectors/supervisord.log. In there will be details about when deamons
+supervisord writes its log file to /rsdata/log/avoviirscollector/supervisord.log. In there will be details about when deamons
 are launched and when they die. If all is going well, it'll be a short uninteresting log file.
 
 Each deamon launched by supervisord will have two log files, capturing STDOUT and STDERR from its process. These logs 
-are placed in /rsdata/log/rscollectors with unpredictable, but easily identifiable, names.
+are placed in /rsdata/log/avoviirscollector with unpredictable, but easily identifiable, names.
 
 **quirks**
 
