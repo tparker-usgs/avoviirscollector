@@ -207,7 +207,7 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     global logger
-    logger = tutil.setup_logging("filefetcher errors")
+    logger = tutil.setup_logging("mirror_gina errors")
     # logger.setLevel(logging.getLevelName('INFO'))
     multiprocessing_logging.install_mp_handler()
 
