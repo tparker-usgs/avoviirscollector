@@ -34,7 +34,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'mirror_gina = avoviirscollector.mirror_gina:main'
+            'mirror_gina = avoviirscollector.mirror_gina:main',
             'msg_broker = avoviirscollector.msg_broker:main'
         ]
     }
