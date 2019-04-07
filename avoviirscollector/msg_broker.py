@@ -59,13 +59,22 @@ class ServerTask(threading.Thread):
         self.socket = context.socket(zmq.REP)
         self.socket.bind("tcp://*:19091")
 
+    def get_message():
+        msg = None
+        while not msg:
+            try:
+                (topic, msg) = self.msgs.popitem(last=False)
+            except KeyError:
+                time.sleep(1)
+
+        return bytes(msg.encode(), 'UTF-8')
+
     def run(self):
         while True:
             logger.debug("waiting for request")
             request = self.socket.recv()
             logger.debug("Received request: %s" % request)
-            (topic, msg) = self.msgs.popitem(last=False)
-            self.socket.send(bytes(msg.encode(), 'UTF-8'))
+            self.socket.send(get_message())
             logger.debug("message sent")
 
 
