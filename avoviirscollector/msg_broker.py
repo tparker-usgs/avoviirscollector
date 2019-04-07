@@ -64,7 +64,7 @@ class ServerTask(threading.Thread):
             logger.debug("waiting for request")
             request = self.socket.recv()
             logger.debug("Received request: %s" % request)
-            msg = self.msgs.pop(last=False)
+            (topic, msg) = self.msgs.popitem(last=False)
             self.socket.send(bytes(msg.encode(), 'UTF-8'))
             logger.debug("message sent")
 
