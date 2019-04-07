@@ -9,17 +9,6 @@
 # Author(s):
 #   Tom Parker <tparker@usgs.gov>
 
-#!/usr/bin/env python
-
-# -*- coding: utf-8 -*-
-
-# I waive copyright and related rights in the this work worldwide
-# through the CC0 1.0 Universal public domain dedication.
-# https://creativecommons.org/publicdomain/zero/1.0/legalcode
-
-# Author(s):
-#   Tom Parker <tparker@usgs.gov>
-
 """ Present a consolodated event stream from messages gathered from individual
     segment_gatherer processes.
 """
@@ -27,8 +16,8 @@
 
 import collections
 import threading
-import queue
 import signal
+import time
 
 import zmq
 from posttroll.subscriber import Subscribe
@@ -59,7 +48,7 @@ class ServerTask(threading.Thread):
         self.socket = context.socket(zmq.REP)
         self.socket.bind("tcp://*:19091")
 
-    def get_message():
+    def get_message(self):
         msg = None
         while not msg:
             try:
@@ -74,7 +63,7 @@ class ServerTask(threading.Thread):
             logger.debug("waiting for request")
             request = self.socket.recv()
             logger.debug("Received request: %s" % request)
-            self.socket.send(get_message())
+            self.socket.send(self.get_message())
             logger.debug("message sent")
 
 
