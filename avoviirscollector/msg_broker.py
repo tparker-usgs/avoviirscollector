@@ -9,10 +9,23 @@
 # Author(s):
 #   Tom Parker <tparker@usgs.gov>
 
+#!/usr/bin/env python
+
+# -*- coding: utf-8 -*-
+
+# I waive copyright and related rights in the this work worldwide
+# through the CC0 1.0 Universal public domain dedication.
+# https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+# Author(s):
+#   Tom Parker <tparker@usgs.gov>
+
 """ Present a consolodated event stream from messages gathered from individual
     segment_gatherer processes.
 """
 
+
+import collections
 import threading
 import queue
 import signal
@@ -33,7 +46,7 @@ class ClientTask(threading.Thread):
             for msg in sub.recv():
                 try:
                     logger.debug("received message")
-                    self.msgs.put(msg)
+                    self.msgs[msg.subject] = msg
                 except Exception as e:
                     logger.error("Exception: {}".format(e))
 
@@ -51,7 +64,7 @@ class ServerTask(threading.Thread):
             logger.debug("waiting for request")
             request = self.socket.recv()
             logger.debug("Received request: %s" % request)
-            msg = self.msgs.get()
+            msg = self.msgs.pop(last=False)
             self.socket.send(bytes(msg.encode(), 'UTF-8'))
             logger.debug("message sent")
 
@@ -63,7 +76,8 @@ def main():
     global logger
     logger = tutil.setup_logging("mirror_gina errors")
 
-    msgs = queue.Queue()
+    # msgs = queue.Queue()
+    msgs = collections.OrderedDict()
     client = ClientTask(msgs)
     client.start()
     logger.info("client started")
