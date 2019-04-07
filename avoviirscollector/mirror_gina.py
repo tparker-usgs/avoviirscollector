@@ -46,7 +46,7 @@ class MirrorGina(object):
         self.tmp_path = os.path.join(base_dir, 'tmp')
         self.config = config
         self.out_path = os.path.join(self.base_dir, self.config['out_path'])
-        self.connection_count = tutil.get_env_var('NUM_GINA_CONNECTIONS')
+        self.connection_count = int(tutil.get_env_var('NUM_GINA_CONNECTIONS'))
 
         # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
         # the libcurl tutorial for more info.
@@ -59,7 +59,7 @@ class MirrorGina(object):
 
     def get_file_list(self):
         logger.debug("fetching files")
-        backfill = timedelta(days=tutil.get_env_var('GINA_BACKFILL_DAYS'))
+        backfill = timedelta(days=int(tutil.get_env_var('GINA_BACKFILL_DAYS')))
         end_date = datetime.utcnow() + timedelta(days=1)
         start_date = end_date - backfill
 
