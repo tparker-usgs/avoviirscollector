@@ -113,7 +113,7 @@ docker-compose
 --------------
 Here is an example service stanza for use with docker-compose.
 
-    collectors:
+    viirscollector:
       image: "tparkerusgs/avoviirscollector:release-2.0.2"
       user: "2001"
       environment:
