@@ -11,17 +11,13 @@ before doing anything that matters.**
 
 Overview
 --------
-I gather VIIRS data files and present an event stream of products to produce. 
-
-I peridically run scripts to retrieve files from remote sources and publish collections using the 
-[posttroll](https://github.com/pytroll/posttroll) messaging system.
+I gather VIIRS data files and present a stream of products to generate on a ZeroMQ REP socket on port.
 
 Daemons:
   * supervisord - launches all other deamons and keeps them running
   * supercronic - a cron daemon which Launches periodic tasks
-  * nameserver - keeps track of active publishers on the internal messaging system and tells listeners where to find 
-                 active publishers.
-  * trollstalker - watches local directories for new files and publishes files as they're recieved
+  * nameserver - keeps track of active publishers on the internal messaging system
+  * trollstalker - kicks things off once a file has been downloaded
   * segment_gatherer - listens to trollstalker and assembles files into a complete granule
   * msg_broker - collects messages from segment_gatherer and provides tasks to 
                  [viirsprocessors](https://github.com/tparker-usgs/avoviirsprocessor)
