@@ -107,11 +107,13 @@ to be creted. These messages become the tasks distributed by msg_broker.
 
 msg_broker
 ----------
-Distribute product generation tasks.
+Distribute product generation tasks. Tasks are encoded as UTF-8 encoded strings, suitable for parsing by 
+posttroll.message.Message.decode().
 
 msg_publisher
 -------------
-Publish messages from internal processing.
+Publish messages from internal processing. Messages are encoded as UTF-8 encoded strings, suitable for parsing by 
+posttroll.message.Message.decode(). They're also pretty simple to parse by hand.
 
 mirror_gina
 -----------
