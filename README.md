@@ -65,6 +65,8 @@ All logs are written to viirs/log/avoviirscollector. Daemons will have their own
 the supercronic logs. Unfortunatle, supervisord creates the logs with very restrictive perms. There's an open
 [issue](https://github.com/Supervisor/supervisor/issues/123) on it.
 
+Supervisord logs are also a bit sluggish. It can take upwards of 15 seconds for messages to be flushed to the logs.
+
 
 supervisord
 -----------
