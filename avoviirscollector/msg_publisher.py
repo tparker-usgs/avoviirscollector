@@ -30,10 +30,13 @@ def main():
     context = zmq.Context()
     pub = context.socket(zmq.PUB)
     pub.bind("tcp://*:29092")
+    logger.debug("Listening for subscribers.")
 
     with Subscribe('', '', True) as sub:
         for msg in sub.recv():
-            pub.send(bytes(msg.encode(), 'UTF-8'))
+            msg_string = msg.encode
+            logger.debug("sending msg: %s", msg_string)
+            pub.send(bytes(msg_string, 'UTF-8'))
 
 
 if __name__ == '__main__':
