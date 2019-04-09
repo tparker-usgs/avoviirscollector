@@ -35,8 +35,16 @@ Filesystem
 
 I'll do all of my work under /viirs. When you run the docker image, mount a volume there.
 
+
+Network
+----------
+
+I present a stream of products to generate on a ZeroMQ REP socket on port 19091.
+
+
 Environment Variables
 ---------------------
+
 **general**
   * VIIRS_RETENTION - if this is defined, files in /viirs will be cleaned up after this many days.
 
