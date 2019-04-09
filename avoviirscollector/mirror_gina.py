@@ -40,6 +40,7 @@ GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
 VIIRS_BASE = '/viirs'
 
+
 class MirrorGina(object):
     def __init__(self, base_dir, config):
         self.base_dir = base_dir
@@ -162,7 +163,8 @@ def path_from_url(base, url):
 
 
 def poll_queue(config):
-    lock_file = os.path.join(VIIRS_BASE, "tmp", "{}.lock".format(config['name']))
+    lock_file = os.path.join(VIIRS_BASE,
+                             "tmp", "{}.lock".format(config['name']))
 
     lock = Lock(lock_file)
     gotlock, pid = lock.lock_pid()
