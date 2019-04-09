@@ -1,9 +1,9 @@
-base-dir: /rsdata
+base-dir: /viirs
 
 viirs: &VIIRS
   sensor: viirs
   level: level1
-  out_path: viirs/sdr
+  out_path: sdr
 
 viirs-moderate: &VIIRS-MODERATE
   <<: *VIIRS

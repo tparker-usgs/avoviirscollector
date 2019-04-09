@@ -2,4 +2,4 @@
 */5 * * * * mirror_gina 
 
 # cleanup
-0 0 * * * $DAYS_RETENTION && find $RSPROCESSING_BASE -mtime +$DAYS_RETENTION -exec rm {} \;
+0 0 * * * $VIIRS_RETENTION && find $AVOVIIRSCOLLECTOR_BASE -mtime +$VIIRS_RETENTION -exec rm {} \;

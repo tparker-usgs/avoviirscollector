@@ -30,12 +30,15 @@ Cron taks:
   * mirror_gina - searches GINA for recent images and retrieves any found
   * cleanup - remove old images
 
+Filesystem
+----------
+
+I'll do all of my work under /viirs. When you run the docker image, mount a volume there.
 
 Environment Variables
 ---------------------
 **general**
-  * AVOVIIRSCOLLECTOR_BASE - local filesystem path of my working directory
-  * VIIRS_RETENTION - files in $AVOVIIRSCOLLECTOR_BASE will be cleaned up after this many days.
+  * VIIRS_RETENTION - if this is defined, files in /viirs will be cleaned up after this many days.
 
 
 **mirror_gina**
@@ -52,7 +55,7 @@ Environment Variables
 
 Logs
 ----
-All logs are written to $AVOVIIRSCOLLECTOR_BASE/log. Daemons will have their own logs, but mirror_gina will show up in 
+All logs are written to viirs/log/avoviirscollector. Daemons will have their own logs, but mirror_gina will show up in 
 the supercronic logs. Unfortunatle, supervisord creates the logs with very restrictive perms. There's an open
 [issue](https://github.com/Supervisor/supervisor/issues/123) on it.
 
@@ -105,7 +108,7 @@ write its own logs, look for output in the supercronic logs.
 
 cleanup
 -------
-Nightly I'll cleanup files in $AVOVIIRSCOLLECTOR_BASE, removing any that are older than $VIIRS_RETENTION days. All
+Nightly I'll cleanup files in /viirs, removing any that are older than $VIIRS_RETENTION days. All
 files, even ones you might not think of.
 
 
@@ -117,7 +120,6 @@ Here is an example service stanza for use with docker-compose.
       image: "tparkerusgs/avoviirscollector:release-2.0.2"
       user: "2001"
       environment:
-        - AVOVIIRSCOLLECTOR_BASE=/viirs
         - VIIRS_RETENTION=7
         - NUM_GINA_CONNECTIONS=4
         - GINA_BACKFILL_DAYS=2
