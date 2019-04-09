@@ -21,6 +21,7 @@ Daemons:
   * segment_gatherer - listens to trollstalker and assembles files into a complete granule
   * msg_broker - collects messages from segment_gatherer and provides tasks to 
                  [viirsprocessors](https://github.com/tparker-usgs/avoviirsprocessor)
+  * msg_publisher - publishes Pytroll messages from internal processesing
   
 Cron taks:
   * mirror_gina - searches GINA for recent images and retrieves any found
@@ -35,7 +36,8 @@ I'll do all of my work under /viirs. When you run the docker image, mount a volu
 Network
 ----------
 
-I present a stream of products to generate on a ZeroMQ REP socket on port 19091.
+I present a stream of products to generate on a ZeroMQ REP socket on port 19091. I also publish all internal Pytroll
+messages with a ZeroMQ PUB socket on port 29092.
 
 
 Environment Variables
@@ -103,6 +105,13 @@ segment_gatherer listens to messages published by trollstalker and publishes a m
 to create a product. One instance of segment_gatherer runs for each product and sends messasges tagged with the product
 to be creted. These messages become the tasks distributed by msg_broker.
 
+msg_broker
+----------
+Distribute product generation tasks.
+
+msg_publisher
+-------------
+Publish messages from internal processing.
 
 mirror_gina
 -----------
@@ -122,6 +131,10 @@ Here is an example service stanza for use with docker-compose.
 
     viirscollector:
       image: "tparkerusgs/avoviirscollector:release-2.0.2"
+      ports:
+        - 19091:19091
+        - 29092:29092
+
       user: "2001"
       environment:
         - VIIRS_RETENTION=7
