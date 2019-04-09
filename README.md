@@ -117,17 +117,15 @@ Here is an example service stanza for use with docker-compose.
       image: "tparkerusgs/avoviirscollector:release-2.0.2"
       user: "2001"
       environment:
-        - RSPROCESSING_BASE=/rsdata
-        - MIRROR_GINA_CONFIG=/tmp/mirrorGina.yaml
-        - DAYS_RETENTION=7 
+        - AVOVIIRSCOLLECTOR_BASE=/viirs
+        - VIIRS_RETENTION=7
+        - NUM_GINA_CONNECTIONS=4
+        - GINA_BACKFILL_DAYS=2
+        - VIIRS_FACILITY=gilmore
         - PYTHONUNBUFFERED=1
         - MAILHOST=smtp.address.com
         - LOG_SENDER=worker@address.com
         - LOG_RECIPIENT=email@address.com
-        - CU_CONFIG_URL=https://avomon01.wr.usgs.gov/svn/docker/rsprocessing/configupdater-collectors.yaml
-        - CU_CONTEXT_NAME=collectors
-        - CU_USER=user
-        - CU_PASSWORD=password
       restart: always
       logging:
         driver: json-file
@@ -135,7 +133,7 @@ Here is an example service stanza for use with docker-compose.
           max-size: 10m
       volumes:
         - type: volume
-          source: rsdata
-          target: /rsdata
+          source: viirs
+          target: /viirs
           volume:
             nocopy: true
