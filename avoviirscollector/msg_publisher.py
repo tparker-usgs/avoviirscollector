@@ -33,7 +33,7 @@ def main():
 
     with Subscribe('', '', True) as sub:
         for msg in sub.recv():
-            pub.send(msg)
+            pub.send(bytes(msg.encode(), 'UTF-8'))
 
 
 if __name__ == '__main__':
