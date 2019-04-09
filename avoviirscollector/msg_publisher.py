@@ -28,15 +28,15 @@ def main():
     logger = tutil.setup_logging("msg_pub errors")
 
     context = zmq.Context()
-    pub = context.socket(zmq.PUB)
-    pub.bind("tcp://*:29092")
+    socket = context.socket(zmq.PUB)
+    socket.bind("tcp://*:29092")
     logger.debug("Listening for subscribers.")
 
     with Subscribe('', '', True) as sub:
         for msg in sub.recv():
-            msg_string = msg.encode
+            msg_string = msg.encode()
             logger.debug("sending msg: %s", msg_string)
-            pub.send(bytes(msg_string, 'UTF-8'))
+            socket.send(bytes(msg_string, 'UTF-8'))
 
 
 if __name__ == '__main__':
