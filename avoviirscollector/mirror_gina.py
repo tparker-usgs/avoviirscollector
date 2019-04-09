@@ -38,7 +38,7 @@ from single import Lock
 
 GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
             + '?action=index&commit=Get+Products&controller=products')
-
+VIIRS_BASE = '/viirs'
 
 class MirrorGina(object):
     def __init__(self, base_dir, config):
@@ -162,10 +162,7 @@ def path_from_url(base, url):
 
 
 def poll_queue(config):
-    base_dir = tutil.get_env_var('RSPROCESSING_BASE')
-    logger.debug("RSPROCESSING_BASE: %s", base_dir)
-
-    lock_file = os.path.join(base_dir, "tmp", "{}.lock".format(config['name']))
+    lock_file = os.path.join(VIIRS_BASE, "tmp", "{}.lock".format(config['name']))
 
     lock = Lock(lock_file)
     gotlock, pid = lock.lock_pid()
@@ -175,7 +172,7 @@ def poll_queue(config):
 
     try:
         logger.info("Launching queueu: %s", config['name'])
-        mirror_gina = MirrorGina(base_dir, config)
+        mirror_gina = MirrorGina(VIIRS_BASE, config)
         mirror_gina.fetch_files()
     finally:
         logger.info("All done with queue %s.", config['name'])
