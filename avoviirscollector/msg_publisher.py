@@ -29,7 +29,7 @@ def main():
 
     context = zmq.Context()
     pub = context.socket(zmq.PUB)
-    pub.bind("tcp://10.1.1.0:29092")
+    pub.bind("tcp://*:29092")
 
     with Subscribe('', '', True) as sub:
         for msg in sub.recv():
