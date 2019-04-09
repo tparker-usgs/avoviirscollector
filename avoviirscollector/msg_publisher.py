@@ -72,7 +72,7 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     global logger
-    logger = tutil.setup_logging("msg_broker errors")
+    logger = tutil.setup_logging("mirror_gina errors")
 
     # msgs = queue.Queue()
     msgs = collections.OrderedDict()
