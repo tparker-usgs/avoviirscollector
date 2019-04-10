@@ -14,4 +14,5 @@ RUN python setup.py install
 
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
+RUN pip freeze > requirements.txt
 CMD ["supervisord"]
