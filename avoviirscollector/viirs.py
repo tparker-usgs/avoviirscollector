@@ -48,7 +48,8 @@ class Viirs(object):
 
 
 def product_key(message):
-    return "~".join(message.subject, message.orbit)
+    return "~".join(message.subject, message.platform_name,
+                    message.orbit_number)
 
 
 def filename_comparator(name1, name2):
