@@ -113,7 +113,10 @@ to be creted. These messages become the tasks distributed by msg_broker.
 msg_broker
 ----------
 Distribute product generation tasks. Tasks are encoded as UTF-8 encoded strings, suitable for parsing by 
-posttroll.message.Message.decode().
+posttroll.message.Message.decode(). msg_broker tries to avoid assigning the same task twice. If a message
+arrives for a which that is already in the queue, the queued task will maintain its queue postition, but
+will be updated with the new message. Duplicate tasks are determined with a 3-tupple of message.subject,
+message.platform_name, and message.orbit_number.
 
 msg_publisher
 -------------
