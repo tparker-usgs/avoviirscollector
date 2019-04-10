@@ -22,6 +22,7 @@ import time
 import zmq
 from posttroll.subscriber import Subscribe
 import tomputils.util as tutil
+from avoviirscollector.viirs import product_key
 
 
 class ClientTask(threading.Thread):
@@ -35,7 +36,7 @@ class ClientTask(threading.Thread):
             for msg in sub.recv():
                 try:
                     logger.debug("received message")
-                    self.msgs[msg.subject] = msg
+                    self.msgs[product_key(msg)] = msg
                 except Exception as e:
                     logger.error("Exception: {}".format(e))
 
@@ -48,7 +49,7 @@ class ServerTask(threading.Thread):
         self.socket = context.socket(zmq.REP)
         self.socket.bind("tcp://*:19091")
 
-    def get_message(self):
+    def get_message_bytes(self):
         msg = None
         while not msg:
             try:
@@ -63,7 +64,7 @@ class ServerTask(threading.Thread):
             logger.debug("waiting for request")
             request = self.socket.recv()
             logger.debug("Received request: %s" % request)
-            self.socket.send(self.get_message())
+            self.socket.send(self.get_message_bytes())
             logger.debug("message sent")
 
 

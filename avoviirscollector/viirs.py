@@ -47,6 +47,10 @@ class Viirs(object):
         return out_string
 
 
+def product_key(message):
+    return "~".join(message.subject, message.orbit)
+
+
 def filename_comparator(name1, name2):
     """
     Sort VIIRS filenames. Decreasing by orbit, then increasing by time,
