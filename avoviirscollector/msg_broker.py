@@ -36,7 +36,8 @@ class ClientTask(threading.Thread):
             for msg in sub.recv():
                 try:
                     logger.debug("received message")
-                    self.msgs[product_key(msg)] = msg
+                    with msgs_lock:
+                        self.msgs[product_key(msg)] = msg
                 except Exception as e:
                     logger.error("Exception: {}".format(e))
 
@@ -53,7 +54,8 @@ class ServerTask(threading.Thread):
         msg = None
         while not msg:
             try:
-                (topic, msg) = self.msgs.popitem(last=False)
+                with msgs_lock:
+                    (topic, msg) = self.msgs.popitem(last=False)
             except KeyError:
                 time.sleep(1)
 
@@ -74,6 +76,9 @@ def main():
 
     global logger
     logger = tutil.setup_logging("msg_broker errors")
+
+    global msgs_lock
+    msgs_lock = threading.Lock()
 
     # msgs = queue.Queue()
     msgs = collections.OrderedDict()
