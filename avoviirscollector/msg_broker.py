@@ -33,14 +33,15 @@ class ClientTask(threading.Thread):
     def queue_msg(self, new_msg):
         key = product_key(new_msg)
         if key in self.msgs:
-            queued_msg = self.msgs[key]
-            queued_msg['start_time'] = min(queued_msg['start_time'],
-                                           new_msg['start_time'])
-            queued_msg['start_date'] = min(queued_msg['start_date'],
-                                           new_msg['start_date'])
-            queued_msg['end_time'] = max(queued_msg['end_time'],
-                                         new_msg['ed_time'])
-            queued_msg['dataset'] += new_msg['dataset']
+            queued_data = self.msgs[key].data
+            new_data = new_msg.data
+            queued_data['start_time'] = min(queued_data['start_time'],
+                                            new_data['start_time'])
+            queued_data['start_date'] = min(queued_data['start_date'],
+                                            new_data['start_date'])
+            queued_data['end_time'] = max(queued_data['end_time'],
+                                          new_data['ed_time'])
+            queued_data['dataset'] += new_data['dataset']
         else:
             self.msgs[key] = new_msg
 
@@ -54,6 +55,7 @@ class ClientTask(threading.Thread):
                         self.queue_msg(new_msg)
                 except Exception as e:
                     logger.error("Exception: {}".format(e))
+                    logger.error(e)
 
 
 class ServerTask(threading.Thread):
