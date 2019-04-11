@@ -30,14 +30,28 @@ class ClientTask(threading.Thread):
         threading.Thread.__init__(self)
         self.msgs = msgs
 
+    def queue_msg(self, new_msg):
+        key = product_key(new_msg)
+        if key in self.msgs:
+            queued_msg = self.msgs[key]
+            queued_msg['start_time'] = min(queued_msg['start_time'],
+                                           new_msg['start_time'])
+            queued_msg['start_date'] = min(queued_msg['start_date'],
+                                           new_msg['start_date'])
+            queued_msg['end_time'] = max(queued_msg['end_time'],
+                                         new_msg['ed_time'])
+            queued_msg['dataset'] += new_msg['dataset']
+        else:
+            self.msgs[key] = new_msg
+
     def run(self):
         topic = "pytroll://AVO/viirs/granule"
         with Subscribe('', topic, True) as sub:
-            for msg in sub.recv():
+            for new_msg in sub.recv():
                 try:
                     logger.debug("received message")
                     with msgs_lock:
-                        self.msgs[product_key(msg)] = msg
+                        self.queue_msg(new_msg)
                 except Exception as e:
                     logger.error("Exception: {}".format(e))
 
