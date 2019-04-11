@@ -40,7 +40,7 @@ class ClientTask(threading.Thread):
             queued_data['start_date'] = min(queued_data['start_date'],
                                             new_data['start_date'])
             queued_data['end_time'] = max(queued_data['end_time'],
-                                          new_data['ed_time'])
+                                          new_data['end_time'])
             queued_data['dataset'] += new_data['dataset']
         else:
             self.msgs[key] = new_msg
