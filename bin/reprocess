@@ -1,0 +1,14 @@
+#!/bin/sh
+
+cd /viirs/sdr
+
+if [ $# -lt 1 ]; then
+    PATTERN=_b`ls | tail -1 | cut --characters=40-44`_
+else
+    PATTERN=$1
+fi
+
+echo "Reprocessing files matching $PATTERN"
+ls *${PATTERN}* 
+sleep 3
+mv *${PATTERN}* .. ; mv ../*${PATTERN}* .

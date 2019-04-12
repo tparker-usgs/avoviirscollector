@@ -32,6 +32,7 @@ setup(
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
+    scripts=['bin/reprocess'],
     entry_points={
         'console_scripts': [
             'mirror_gina = avoviirscollector.mirror_gina:main',
