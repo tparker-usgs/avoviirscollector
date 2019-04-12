@@ -36,7 +36,7 @@ setup(
     entry_points={
         'console_scripts': [
             'mirror_gina = avoviirscollector.mirror_gina:main',
-            'msg_broker = avoviirscollector.msg_broker:main',
+            'task_broker = avoviirscollector.task_broker:main',
             'msg_publisher = avoviirscollector.msg_publisher:main',
         ]
     }
