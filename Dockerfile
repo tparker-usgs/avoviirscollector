@@ -1,4 +1,4 @@
-FROM tparkerusgs/avopytroll:release-1.4.0
+FROM tparkerusgs/avopytroll:release-1.5.2
 
 WORKDIR /app
 COPY segment_gatherer.ini .
