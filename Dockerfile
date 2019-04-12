@@ -9,6 +9,7 @@ COPY cron-viirscollector .
 COPY mirrorGina.yaml .
 COPY setup.cfg .
 COPY setup.py .
+COPY bin .
 COPY avoviirscollector avoviirscollector
 RUN python setup.py install
 
