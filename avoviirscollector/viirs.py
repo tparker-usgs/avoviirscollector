@@ -48,7 +48,7 @@ class Viirs(object):
 
 
 def product_key(message):
-    return "~".join((message.subject, message.data['platform_name'],
+    return ";".join((message.subject, message.data['platform_name'],
                     str(message.data['orbit_number'])))
 
 
