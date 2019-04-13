@@ -57,12 +57,9 @@ class ServerTask(threading.Thread):
         msg = None
         while not msg:
             try:
-                with msgs_lock:
-                    print("aquired lock in get_message()")
-                    (topic, msg) = self.msgs.popitem(last=False)
+                (topic, msg) = self.msgs.popitem(last=False)
             except KeyError:
                 time.sleep(1)
-            print("released lock in get_message()")
         return msg
 
     def run(self):
