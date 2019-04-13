@@ -37,10 +37,12 @@ class ClientTask(threading.Thread):
                 try:
                     logger.debug("received message (%d)", len(self.msgs))
                     with msgs_lock:
+                        print("aquired lock in client.run{}")
                         queue_msg(self.msgs, new_msg)
                 except Exception as e:
                     logger.error("Exception: {}".format(e))
                     logger.error(e)
+                print("released lock in client.run{}")
 
 
 class ServerTask(threading.Thread):
@@ -56,9 +58,11 @@ class ServerTask(threading.Thread):
         while not msg:
             try:
                 with msgs_lock:
+                    print("aquired lock in get_message()")
                     (topic, msg) = self.msgs.popitem(last=False)
             except KeyError:
                 time.sleep(1)
+            print("released lock in get_message()")
         return msg
 
     def run(self):
@@ -73,7 +77,9 @@ class ServerTask(threading.Thread):
                 logger.debug("message sent")
             except zmq.Again:
                 with msgs_lock:
+                    print("aquired lock in run()")
                     queue_msg(self.msgs, msg)
+                print("released lock in run()")
                 logger.debug("a client was there, now it's gone")
 
 
