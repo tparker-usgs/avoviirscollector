@@ -89,7 +89,7 @@ def queue_msg(msgs, new_msg):
                                       new_data['end_time'])
         queued_data['dataset'] += new_data['dataset']
     else:
-        self.msgs[key] = new_msg
+        msgs[key] = new_msg
 
 
 def main():
