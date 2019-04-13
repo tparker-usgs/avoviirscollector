@@ -79,6 +79,7 @@ class ServerTask(threading.Thread):
 def queue_msg(msgs, new_msg):
     key = product_key(new_msg)
     if key in msgs:
+        logger.debug("updating messge %s", key)
         queued_data = msgs[key].data
         new_data = new_msg.data
         queued_data['start_time'] = min(queued_data['start_time'],
@@ -89,6 +90,7 @@ def queue_msg(msgs, new_msg):
                                       new_data['end_time'])
         queued_data['dataset'] += new_data['dataset']
     else:
+        logger.debug("queueing messge %s", key)
         msgs[key] = new_msg
 
 
