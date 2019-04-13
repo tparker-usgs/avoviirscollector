@@ -30,21 +30,6 @@ class ClientTask(threading.Thread):
         threading.Thread.__init__(self)
         self.msgs = msgs
 
-    def queue_msg(self, new_msg):
-        key = product_key(new_msg)
-        if key in self.msgs:
-            queued_data = self.msgs[key].data
-            new_data = new_msg.data
-            queued_data['start_time'] = min(queued_data['start_time'],
-                                            new_data['start_time'])
-            queued_data['start_date'] = min(queued_data['start_date'],
-                                            new_data['start_date'])
-            queued_data['end_time'] = max(queued_data['end_time'],
-                                          new_data['end_time'])
-            queued_data['dataset'] += new_data['dataset']
-        else:
-            self.msgs[key] = new_msg
-
     def run(self):
         topic = "pytroll://AVO/viirs/granule"
         with Subscribe('', topic, True) as sub:
@@ -52,7 +37,7 @@ class ClientTask(threading.Thread):
                 try:
                     logger.debug("received message (%d)", len(self.msgs))
                     with msgs_lock:
-                        self.queue_msg(new_msg)
+                        queue_msg(self.msgs, new_msg)
                 except Exception as e:
                     logger.error("Exception: {}".format(e))
                     logger.error(e)
@@ -66,7 +51,7 @@ class ServerTask(threading.Thread):
         self.socket = context.socket(zmq.REP)
         self.socket.bind("tcp://*:19091")
 
-    def get_message_bytes(self):
+    def get_message(self):
         msg = None
         while not msg:
             try:
@@ -74,8 +59,7 @@ class ServerTask(threading.Thread):
                     (topic, msg) = self.msgs.popitem(last=False)
             except KeyError:
                 time.sleep(1)
-
-        return bytes(msg.encode(), 'UTF-8')
+        return msg
 
     def run(self):
         while True:
@@ -84,10 +68,28 @@ class ServerTask(threading.Thread):
             logger.debug("Received request: %s (%d)",
                          request, len(self.msgs))
             try:
-                self.socket.send(self.get_message_bytes(), zmq.NOBLOCK)
+                msg = self.get_message()
+                self.socket.send(bytes(msg.encode(), 'UTF-8'), zmq.NOBLOCK)
                 logger.debug("message sent")
             except zmq.Again:
+                queue_msg(self.msgs, msg)
                 logger.debug("a client was there, now it's gone")
+
+
+def queue_msg(msgs, new_msg):
+    key = product_key(new_msg)
+    if key in msgs:
+        queued_data = msgs[key].data
+        new_data = new_msg.data
+        queued_data['start_time'] = min(queued_data['start_time'],
+                                        new_data['start_time'])
+        queued_data['start_date'] = min(queued_data['start_date'],
+                                        new_data['start_date'])
+        queued_data['end_time'] = max(queued_data['end_time'],
+                                      new_data['end_time'])
+        queued_data['dataset'] += new_data['dataset']
+    else:
+        self.msgs[key] = new_msg
 
 
 def main():
