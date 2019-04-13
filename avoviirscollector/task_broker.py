@@ -72,7 +72,8 @@ class ServerTask(threading.Thread):
                 self.socket.send(bytes(msg.encode(), 'UTF-8'), zmq.NOBLOCK)
                 logger.debug("message sent")
             except zmq.Again:
-                queue_msg(self.msgs, msg)
+                with msgs_lock:
+                    queue_msg(self.msgs, msg)
                 logger.debug("a client was there, now it's gone")
 
 
