@@ -81,14 +81,13 @@ class ServerTask(threading.Thread):
         while True:
             logger.debug("waiting for request")
             request = self.socket.recv()
-            logger.debug("Received request: %s (%d)", 
+            logger.debug("Received request: %s (%d)",
                          request, len(self.msgs))
             try:
                 self.socket.send(self.get_message_bytes(), zmq.NOBLOCK)
                 logger.debug("message sent")
-           except zmq.Again:
+            except zmq.Again:
                 logger.debug("a client was there, now it's gone")
-
 
 
 def main():
