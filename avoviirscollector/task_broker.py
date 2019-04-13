@@ -36,13 +36,10 @@ class ClientTask(threading.Thread):
             for new_msg in sub.recv():
                 try:
                     logger.debug("received message (%d)", len(self.msgs))
-                    with msgs_lock:
-                        print("aquired lock in client.run{}")
-                        queue_msg(self.msgs, new_msg)
+                    queue_msg(self.msgs, new_msg)
                 except Exception as e:
                     logger.error("Exception: {}".format(e))
                     logger.error(e)
-                print("released lock in client.run{}")
 
 
 class ServerTask(threading.Thread):
@@ -73,30 +70,28 @@ class ServerTask(threading.Thread):
                 self.socket.send(bytes(msg.encode(), 'UTF-8'), zmq.NOBLOCK)
                 logger.debug("message sent")
             except zmq.Again:
-                with msgs_lock:
-                    print("aquired lock in run()")
-                    queue_msg(self.msgs, msg)
-                print("released lock in run()")
+                queue_msg(self.msgs, msg)
                 logger.debug("a client was there, now it's gone")
 
 
 def queue_msg(msgs, new_msg):
     key = product_key(new_msg)
-    if key in msgs:
-        logger.debug("updating messge %s", key)
-        queued_data = msgs[key].data
-        new_data = new_msg.data
-        queued_data['start_time'] = min(queued_data['start_time'],
-                                        new_data['start_time'])
-        queued_data['start_date'] = min(queued_data['start_date'],
-                                        new_data['start_date'])
-        queued_data['end_time'] = max(queued_data['end_time'],
-                                      new_data['end_time'])
-        queued_data['dataset'] += new_data['dataset']
-    else:
-        logger.debug("queueing messge %s", key)
-        msgs[key] = new_msg
-
+    with msgs_lock:
+        if key in msgs:
+            logger.debug("updating messge %s", key)
+            queued_data = msgs[key].data
+            new_data = new_msg.data
+            queued_data['start_time'] = min(queued_data['start_time'],
+                                            new_data['start_time'])
+            queued_data['start_date'] = min(queued_data['start_date'],
+                                            new_data['start_date'])
+            queued_data['end_time'] = max(queued_data['end_time'],
+                                          new_data['end_time'])
+            queued_data['dataset'] += new_data['dataset']
+        else:
+            logger.debug("queueing messge %s", key)
+            msgs[key] = new_msg
+    
 
 def main():
     # let ctrl-c work as it should.
