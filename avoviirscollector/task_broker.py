@@ -50,7 +50,7 @@ class ClientTask(threading.Thread):
         with Subscribe('', topic, True) as sub:
             for new_msg in sub.recv():
                 try:
-                    logger.debug("received message")
+                    logger.debug("received message (%d)", len(self.msgs))
                     with msgs_lock:
                         self.queue_msg(new_msg)
                 except Exception as e:
@@ -81,7 +81,8 @@ class ServerTask(threading.Thread):
         while True:
             logger.debug("waiting for request")
             request = self.socket.recv()
-            logger.debug("Received request: %s" % request)
+            logger.debug("Received request: %s (%d)", 
+                         request, len(self.msgs))
             self.socket.send(self.get_message_bytes())
             logger.debug("message sent")
 
