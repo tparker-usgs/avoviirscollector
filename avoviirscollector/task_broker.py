@@ -47,7 +47,7 @@ class ServerTask(threading.Thread):
         threading.Thread.__init__(self)
         self.msgs = msgs
         context = zmq.Context()
-        self.socket = context.socket(zmq.SERVER)
+        self.socket = context.socket(zmq.DEALER)
         self.socket.bind("tcp://*:19091")
 
     def get_message(self):
@@ -61,19 +61,20 @@ class ServerTask(threading.Thread):
 
     def run(self):
         while True:
-            logger.debug("waiting for request")
-            request = self.socket.recv()
-            logger.debug("Received request: %s (%d)",
-                         request, len(self.msgs))
             try:
                 msg = self.get_message()
                 self.socket.send(bytes(msg.encode(), 'UTF-8'), zmq.NOBLOCK)
-                logger.debug("message sent: %s %s - %s", product_key(new_msg),
+                logger.debug("message sent: %s %s - %s", product_key(msg),
                              msg.data['start_time'].strftime('%Y%m%d.%H%M'),
                              msg.data['end_time'].strftime('%Y%m%d.%H%M'))
             except zmq.Again:
                 queue_msg(self.msgs, msg)
                 logger.debug("a client was there, now it's gone")
+
+            logger.debug("waiting for response")
+            request = self.socket.recv()
+            logger.debug("Received response: %s (%d)",
+                         request, len(self.msgs))
 
 
 def queue_msg(msgs, new_msg):
@@ -93,7 +94,7 @@ def queue_msg(msgs, new_msg):
         else:
             logger.debug("queueing messge %s", key)
             msgs[key] = new_msg
-    
+
 
 def main():
     # let ctrl-c work as it should.
