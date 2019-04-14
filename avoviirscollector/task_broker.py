@@ -68,7 +68,9 @@ class ServerTask(threading.Thread):
             try:
                 msg = self.get_message()
                 self.socket.send(bytes(msg.encode(), 'UTF-8'), zmq.NOBLOCK)
-                logger.debug("message sent")
+                logger.debug("message sent: %s %s - %s", product_key(new_msg),
+                             msg.data['start_time'].strftime('%Y%m%d.%H%M'),
+                             msg.data['end_time'].strftime('%Y%m%d.%H%M'))
             except zmq.Again:
                 queue_msg(self.msgs, msg)
                 logger.debug("a client was there, now it's gone")
