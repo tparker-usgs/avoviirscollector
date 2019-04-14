@@ -47,7 +47,7 @@ class ServerTask(threading.Thread):
         threading.Thread.__init__(self)
         self.msgs = msgs
         context = zmq.Context()
-        self.socket = context.socket(zmq.REP)
+        self.socket = context.socket(zmq.SERVER)
         self.socket.bind("tcp://*:19091")
 
     def get_message(self):
