@@ -120,8 +120,6 @@ def main():
     logger.info("server started")
     client.join()
     server.join()
-    
-    context.destroy()
 
 if __name__ == '__main__':
     main()
