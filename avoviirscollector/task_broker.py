@@ -106,6 +106,9 @@ def main():
     global msgs_lock
     msgs_lock = threading.Lock()
 
+    logger.debug("Current libzmq version is %s" % zmq.zmq_version())
+    logger.debug("Current  pyzmq version is %s" % zmq.__version__)
+    
     # msgs = queue.Queue()
     msgs = collections.OrderedDict()
     client = ClientTask(msgs)
