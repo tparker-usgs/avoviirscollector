@@ -108,17 +108,20 @@ def main():
 
     logger.debug("Current libzmq version is %s" % zmq.zmq_version())
     logger.debug("Current  pyzmq version is %s" % zmq.__version__)
-    
-    # msgs = queue.Queue()
+
+    context = zmq.Context()
     msgs = collections.OrderedDict()
+
     client = ClientTask(msgs)
     client.start()
     logger.info("client started")
-    server = ServerTask(msgs)
+    server = ServerTask(context, msgs)
     server.start()
     logger.info("server started")
     client.join()
-
+    server.join()
+    
+    context.destroy()
 
 if __name__ == '__main__':
     main()
