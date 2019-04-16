@@ -25,21 +25,24 @@ import tomputils.util as tutil
 from avoviirscollector.viirs import product_key
 
 
+TOPIC = "pytroll://AVO/viirs/granule"
+UPDATER_ADDRESS = "tcp://*:19191"
+TASKER_ADDRESS = "tcp://*:19091"
+
+
 class ClientTask(threading.Thread):
     def __init__(self, msgs):
         threading.Thread.__init__(self)
         self.msgs = msgs
 
     def run(self):
-        topic = "pytroll://AVO/viirs/granule"
-        with Subscribe('', topic, True) as sub:
+        with Subscribe('', TOPIC, True) as sub:
             for new_msg in sub.recv():
                 try:
                     logger.debug("received message (%d)", len(self.msgs))
                     queue_msg(self.msgs, new_msg)
                 except Exception as e:
-                    logger.error("Exception: {}".format(e))
-                    logger.error(e)
+                    logger.exception("Can't queue message.")
 
 
 class Updater(threading.Thread):
@@ -47,7 +50,7 @@ class Updater(threading.Thread):
         threading.Thread.__init__(self)
         self.msgs = msgs
         self.socket = context.socket(zmq.PUB)
-        self.socket.bind("tcp://*:19191")
+        self.socket.bind(UPDATER_ADDRESS)
 
     def run(self):
         while True:
@@ -63,7 +66,7 @@ class Tasker(threading.Thread):
         threading.Thread.__init__(self)
         self.msgs = msgs
         self.socket = context.socket(zmq.REP)
-        self.socket.bind("tcp://*:19091")
+        self.socket.bind(TASKER_ADDRESS)
 
     def run(self):
         while True:
