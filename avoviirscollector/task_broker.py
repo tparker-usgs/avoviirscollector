@@ -42,39 +42,42 @@ class ClientTask(threading.Thread):
                     logger.error(e)
 
 
-class ServerTask(threading.Thread):
-    def __init__(self, msgs):
+class Updater(threading.Thread):
+    def __init__(self, context, msgs):
         threading.Thread.__init__(self)
         self.msgs = msgs
-        context = zmq.Context()
-        self.socket = context.socket(zmq.DEALER)
-        self.socket.bind("tcp://*:19091")
-
-    def get_message(self):
-        msg = None
-        while not msg:
-            try:
-                (topic, msg) = self.msgs.popitem(last=False)
-            except KeyError:
-                time.sleep(1)
-        return msg
+        self.socket = context.socket(zmq.PUB)
+        self.socket.bind("tcp://*:19191")
 
     def run(self):
         while True:
-            try:
-                msg = self.get_message()
-                self.socket.send(bytes(msg.encode(), 'UTF-8'), zmq.NOBLOCK)
-                logger.debug("message sent: %s %s - %s", product_key(msg),
-                             msg.data['start_time'].strftime('%Y%m%d.%H%M'),
-                             msg.data['end_time'].strftime('%Y%m%d.%H%M'))
-            except zmq.Again:
-                queue_msg(self.msgs, msg)
-                logger.debug("a client was there, now it's gone")
+            msgs_cnt = len(self.msgs)
+            if msgs_cnt:
+                self.socket.send_string("There's stuff to do")
+                logger.debug("Updater: There's stuff to do: %d", msgs_cnt)
+            else:
+                time.sleep(1)
 
-            logger.debug("waiting for response")
-            request = self.socket.recv()
-            logger.debug("Received response: %s (%d)",
-                         request, len(self.msgs))
+
+class Tasker(threading.Thread):
+    def __init__(self, context, msgs):
+        threading.Thread.__init__(self)
+        self.msgs = msgs
+        self.socket = context.socket(zmq.REP)
+        self.socket.bind("tcp://*:19091")
+
+    def run(self):
+        while True:
+            logger.debug("waiting for request")
+            self.socket.recv()
+            logger.debug("received request")
+            try:
+                (key, msg) = self.msgs.popitem(last=False)
+                self.socket.send(bytes(msg.encode(), 'UTF-8'))
+                logger.debug("sent response")
+            except KeyError:
+                self.socket.send(b'')
+                logger.debug("sent empty message")
 
 
 def queue_msg(msgs, new_msg):
@@ -115,11 +118,16 @@ def main():
     client = ClientTask(msgs)
     client.start()
     logger.info("client started")
-    server = ServerTask(context, msgs)
-    server.start()
-    logger.info("server started")
+    tasker = Tasker(context, msgs)
+    tasker.start()
+    logger.info("tasker started")
+    updater = Updater(context, msgs)
+    updater.start()
+    logger.info("updater started")
     client.join()
-    server.join()
+    tasker.join()
+    updater.join()
+
 
 if __name__ == '__main__':
     main()
