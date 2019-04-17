@@ -73,7 +73,8 @@ class Tasker(threading.Thread):
         with msgs_lock:
             (key, msg_list) = self.msgs.popitem(last=False)
             msg = msg_list.pop()
-            self.msgs[key] = msg_list
+            if msg_list:
+                self.msgs[key] = msg_list
         return msg
 
     def run(self):
