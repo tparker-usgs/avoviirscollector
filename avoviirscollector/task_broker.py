@@ -74,6 +74,7 @@ class Tasker(threading.Thread):
             (key, msg_list) = self.msgs.popitem(last=False)
             msg = msg_list.pop()
             if msg_list:
+                logger.debug("requeing {} items".format(len(msg_list)))
                 self.msgs[key] = msg_list
         return msg
 
