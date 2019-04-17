@@ -18,7 +18,7 @@ import collections
 import threading
 import signal
 import time
-
+from datetime import timedelta
 import zmq
 from posttroll.subscriber import Subscribe
 import tomputils.util as tutil
@@ -28,6 +28,7 @@ from avoviirscollector.viirs import product_key
 TOPIC = "pytroll://AVO/viirs/granule"
 UPDATER_ADDRESS = "tcp://*:19191"
 TASKER_ADDRESS = "tcp://*:19091"
+ORBIT_SLACK = timedelta(minutes=30)
 
 
 class ClientTask(threading.Thread):
@@ -68,13 +69,20 @@ class Tasker(threading.Thread):
         self.socket = context.socket(zmq.REP)
         self.socket.bind(TASKER_ADDRESS)
 
+    def get_message(self):
+        with msgs_lock:
+            (key, msg_list) = self.msgs.popitem(last=False)
+            msg = msg_list.pop()
+            self.msgs[key] = msg_list
+        return msg
+
     def run(self):
         while True:
             logger.debug("waiting for request")
             self.socket.recv()
             logger.debug("received request")
             try:
-                (key, msg) = self.msgs.popitem(last=False)
+                msg = self.get_message()
                 self.socket.send(bytes(msg.encode(), 'UTF-8'))
                 logger.debug("sent response")
             except KeyError:
@@ -85,20 +93,28 @@ class Tasker(threading.Thread):
 def queue_msg(msgs, new_msg):
     key = product_key(new_msg)
     with msgs_lock:
-        if key in msgs:
-            logger.debug("updating messge %s", key)
-            queued_data = msgs[key].data
-            new_data = new_msg.data
-            queued_data['start_time'] = min(queued_data['start_time'],
-                                            new_data['start_time'])
-            queued_data['start_date'] = min(queued_data['start_date'],
-                                            new_data['start_date'])
-            queued_data['end_time'] = max(queued_data['end_time'],
-                                          new_data['end_time'])
-            queued_data['dataset'] += new_data['dataset']
-        else:
-            logger.debug("queueing messge %s", key)
-            msgs[key] = new_msg
+        if key not in msgs:
+            logger.debug("Adding new key %s", key)
+            msgs[key] = []
+
+        new_data = new_msg.data
+        for msg in msgs[key]:
+            queued_data = msg.data
+            time_diff = abs(queued_data['start_time'] - new_data['start_time'])
+            if time_diff < ORBIT_SLACK:
+                logger.debug("updating messge %s", key)
+                queued_data['start_time'] = min(queued_data['start_time'],
+                                                new_data['start_time'])
+                queued_data['start_date'] = min(queued_data['start_date'],
+                                                new_data['start_date'])
+                queued_data['end_time'] = max(queued_data['end_time'],
+                                              new_data['end_time'])
+                queued_data['dataset'] += new_data['dataset']
+                new_msg = None
+                break
+
+        if new_msg:
+                msgs[key].append(new_msg)
 
 
 def main():
