@@ -42,7 +42,7 @@ class ClientTask(threading.Thread):
                 try:
                     logger.debug("received message (%d)", len(self.msgs))
                     queue_msg(self.msgs, new_msg)
-                except Exception as e:
+                except Exception:
                     logger.exception("Can't queue message.")
 
 
@@ -119,7 +119,7 @@ def queue_msg(msgs, new_msg):
                 break
 
         if new_msg:
-                msgs[key].append(new_msg)
+            msgs[key].append(new_msg)
 
 
 def main():
