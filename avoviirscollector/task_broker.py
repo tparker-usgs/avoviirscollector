@@ -46,12 +46,17 @@ class ClientTask(threading.Thread):
                     logger.exception("Can't queue message.")
 
 
-class Updater(threading.Thread):
-    def __init__(self, context, msgs):
+class Server(threading.Thread):
+    def __init__(self, context, msgs, socket_type, address):
         threading.Thread.__init__(self)
         self.msgs = msgs
         self.socket = context.socket(zmq.PUB)
         self.socket.bind(UPDATER_ADDRESS)
+
+
+class Updater(Server):
+    def __init__(self, context, msgs):
+        Server.__init__(self, context, msgs, zmq.PUB, UPDATER_ADDRESS)
 
     def run(self):
         while True:
@@ -67,10 +72,7 @@ class Updater(threading.Thread):
 
 class Tasker(threading.Thread):
     def __init__(self, context, msgs):
-        threading.Thread.__init__(self)
-        self.msgs = msgs
-        self.socket = context.socket(zmq.REP)
-        self.socket.bind(TASKER_ADDRESS)
+        Server.__init__(self, context, msgs, zmq.REP, TASKER_ADDRESS)
 
     def get_message(self):
         with msgs_lock:
