@@ -59,6 +59,9 @@ class Updater(threading.Thread):
             if msgs_cnt:
                 self.socket.send_string("There's stuff to do")
                 logger.debug("Updater: There's stuff to do: %d", msgs_cnt)
+            else:
+                self.socket.send_string("")
+                logger.debug("Updater: There's nothing to do: %d", msgs_cnt)
             time.sleep(1)
 
 
