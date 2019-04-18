@@ -65,16 +65,18 @@ def filename_comparator(name1, name2):
     v2 = Viirs(name2)
 
     if v1.orbit > v2.orbit:
-        return -1
+        rc = -1
     elif v1.orbit < v2.orbit:
-        return 1
+        rc = 1
     elif v1.start > v2.start:
-        return 1
+        rc = 1
     elif v1.start < v2.start:
-        return -1
+        rc = -1
     elif v1.channel > v2.channel:
-        return 1
+        rc = 1
     elif v1.channel < v2.channel:
-        return -1
+        rc = -1
     else:
-        return 0
+        rc = 0
+
+    return rc
