@@ -11,11 +11,7 @@ viirs-moderate: &VIIRS-MODERATE
 
 viirs-imagery: &VIIRS-IMAGERY
   <<: *VIIRS
-  match: '/(GITCO|SVI01|SVI04|SVI05)_'
-
-viirs-dnb: &VIIRS-DNB
-  <<: *VIIRS
-  match: '/(GDNBO|SVDNB)_'
+  match: '/(GITCO|SVI04|SVI05)_'
 
 queues:
   - name: viirs-moderate-snpp
@@ -29,10 +25,4 @@ queues:
     satellite: snpp
   - name: viirs-imagery-noaa20
     <<: *VIIRS-IMAGERY
-    satellite: noaa20
-  - name: viirs-dnb-snpp
-    <<: *VIIRS-DNB
-    satellite: snpp
-  - name: viirs-dnb-noaa20
-    <<: *VIIRS-DNB
     satellite: noaa20
