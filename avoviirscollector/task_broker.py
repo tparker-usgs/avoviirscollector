@@ -50,8 +50,8 @@ class Server(threading.Thread):
     def __init__(self, context, msgs, socket_type, address):
         threading.Thread.__init__(self)
         self.msgs = msgs
-        self.socket = context.socket(zmq.PUB)
-        self.socket.bind(UPDATER_ADDRESS)
+        self.socket = context.socket(socket_type)
+        self.socket.bind(address)
 
 
 class Updater(Server):
