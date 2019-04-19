@@ -60,13 +60,10 @@ class Updater(Server):
 
     def run(self):
         while True:
-            msgs_cnt = len(self.msgs)
-            if msgs_cnt:
-                self.socket.send_string("There's stuff to do")
-                logger.debug("Updater: There's stuff to do: %d", msgs_cnt)
-            else:
-                self.socket.send_string("")
-                logger.debug("Updater: There's nothing to do: %d", msgs_cnt)
+            update = {}
+            update['queue length'] = len(self.msgs)
+            self.socket.send_json(update)
+            logger.debug("Updater: queue length:: %d", update['queue length'])
             time.sleep(1)
 
 
