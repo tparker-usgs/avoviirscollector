@@ -16,4 +16,4 @@ Fetch viirs data at AVO
 """
 
 
-__version__ = "3.10.5"
+__version__ = "3.10.6"
