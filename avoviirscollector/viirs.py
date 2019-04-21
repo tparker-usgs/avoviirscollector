@@ -52,6 +52,10 @@ def product_key(message):
                     str(message.data['orbit_number'])))
 
 
+def products(keys):
+    return [product.split()[0] for product in keys]
+
+
 def filename_comparator(name1, name2):
     """
     Sort VIIRS filenames. Decreasing by orbit, then increasing by time,

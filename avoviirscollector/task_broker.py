@@ -22,7 +22,7 @@ from datetime import timedelta
 import zmq
 from posttroll.subscriber import Subscribe
 import tomputils.util as tutil
-from avoviirscollector.viirs import product_key
+from avoviirscollector.viirs import product_key, products
 
 
 TOPIC = "pytroll://AVO/viirs/granule"
@@ -62,6 +62,7 @@ class Updater(Server):
         while True:
             update = {}
             update['queue length'] = len(self.msgs)
+            update['products waiting'] = products(self.msgs.keys())
             self.socket.send_json(update)
             logger.debug("Updater: queue length:: %d", update['queue length'])
             time.sleep(1)
