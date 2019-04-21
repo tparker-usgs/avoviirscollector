@@ -11,7 +11,7 @@ viirs-moderate: &VIIRS-MODERATE
 
 viirs-imagery: &VIIRS-IMAGERY
   <<: *VIIRS
-  match: '/(GITCO|SVI04|SVI05)_'
+  match: '/(GITCO|SVI01|SVI04|SVI05)_'
 
 queues:
   - name: viirs-moderate-snpp
