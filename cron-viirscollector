@@ -1,5 +1,8 @@
 # Grab interesting files from GINA
 */5 * * * * mirror_gina 
 
+# pull TLE file
+0 * * * * cd /viirs/elements ; wget -N 'https://celestrak.com/NORAD/elements/noaa.txt' > /dev/null 2>&1
+
 # cleanup
 0 0 * * * $VIIRS_RETENTION && find $AVOVIIRSCOLLECTOR_BASE -mtime +$VIIRS_RETENTION -exec rm {} \;
