@@ -33,11 +33,46 @@ Filesystem
 I'll do all of my work under /viirs. When you run the docker image, mount a volume there.
 
 
-Network
-----------
+Update Publisher
+----------------
+As new files are received, I will publish updates in [Posttroll](https://posttroll.readthedocs.io/en/latest/) messages.
 
-I present a stream of products to generate on a ZeroMQ REP socket on port 19091. I also publish all internal Pytroll
-messages with a ZeroMQ PUB socket on port 29092.
+example subscriber:
+
+    #!/usr/bin/env python3
+
+    import json
+
+    import zmq
+    from posttroll.message import Message
+
+    context = zmq.Context()
+    socket = context.socket(zmq.SUB)
+    socket.setsockopt_string(zmq.SUBSCRIBE, 'pytroll://AVO/viirs/sdr')
+    socket.connect("tcp://avoworker2:29092")
+
+    while True:
+      msg = Message.decode(socket.recv())
+      print(json.dumps(msg.data, sort_keys=True, indent=4, default=str))
+
+output:
+
+    gilbert [6:59pm] % ./pubtest.py
+    {
+        "end_time": "2019-04-22 18:29:59",
+        "orbit_number": 38780,
+        "orig_platform_name": "npp",
+        "platform_name": "Suomi-NPP",
+        "proctime": "2019-04-22 18:39:26.285541",
+        "segment": "SVM16",
+        "sensor": [
+            "viirs"
+        ],
+        "start_time": "2019-04-22 18:28:34.800000",
+        "uid": "SVM16_npp_d20190422_t1828348_e1829590_b38780_c20190422183926285541_cspp_dev.h5",
+        "uri": "/viirs/sdr/SVM16_npp_d20190422_t1828348_e1829590_b38780_c20190422183926285541_cspp_dev.h5"
+    }
+
 
 
 Environment Variables
