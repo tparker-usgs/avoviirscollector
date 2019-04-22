@@ -3,6 +3,7 @@ FROM tparkerusgs/avopytroll:release-1.5.2
 WORKDIR /app
 COPY segment_gatherer.ini .
 COPY trollstalker.ini .
+COPY DOIRootCA.crt .
 
 WORKDIR /app/avoviirscollector
 COPY cron-viirscollector .
