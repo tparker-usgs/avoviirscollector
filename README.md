@@ -8,22 +8,26 @@ before doing anything that matters.**
 
 Overview
 ========
-Docker container to collect VIIRS data at AVO
+A Docker container to collect VIIRS data at AVO.
 
 Filesystem
 ----------
-I need some working space to be mounted at /viirs inside the container. Inside
-here I will retrieve selected VIIRS imagery files and place them into a sdr/
-subsirectory. I will also download a file with orbital elements and place it
-in a elements/ subdirectory.
+I need some working space to be mounted inside the container at /viirs.
+I will place retrieved SDR files in /viirs/sdr. I will also download the
+orbital elements to /viirs/elements/noaa.txt
+
+Any logs I create will be written to /viirs/log
+
+Daily I'll trim /viirs, removing all files more than $VIIRS_RETENTION
+days old.
 
 
 Published ports
 ---------------
-I will pubish messages about downloaded files, which can be read by any
-programs interested in hearing about new data. The publisher will bind to port
-29092/tcp, which can be exposed by the container on any convienent port. 
-Published messages can be read with simple Python code.
+I will listen for subscribes on 29092/tcp. Subscribers receive messages
+deatiling each downloaded file, which can be unmarshalled by 
+[posttroll.message.Message.decode](https://posttroll.readthedocs.io/en/latest/#posttroll.message.Message.decode)
+or parsed by hand.
 
 example subscriber:
 
@@ -62,24 +66,90 @@ output:
     }
 
 
-Daemons:
-  * supervisord - launches all other deamons and keeps them running
-  * supercronic - a cron daemon which Launches periodic tasks
-  * nameserver - keeps track of active publishers on the internal messaging system
-  * trollstalker - kicks things off once a file has been downloaded
-  * segment_gatherer - listens to trollstalker and assembles files into a complete granule
-  * task_broker - collects messages from segment_gatherer and provides tasks to 
+Daemons
+=======
+
+supervisord
+-----------
+Launches all other deamons and keeps them running. supervisord creates
+a log file for each daemon it spawns and places it in /viirs/log
+Unfortunatly, supervisord creates the logs with very restrictive perms.
+There's an open
+[issue](https://github.com/Supervisor/supervisor/issues/123) on it.
+
+supervisor also writes its own log. Look here to find unstable daemons.
+This log should be short and boring.
+
+Additional info on supervisord is available at <http://supervisord.org/>. 
+the supervisord log to see how stable the daemons are. When everything is going well this is a short boring log.
+
+supercronic
+-----------
+Launch mirror_gina and cleanup. Additional info on supercronic is
+available at <https://github.com/aptible/supercronic>.
+The supercronic logs will capture anything interesting from mirror_gina.
+
+nameserver
+----------
+nameserver is part of the PyTroll posttroll project. Additional info on posttrol is available at
+<https://github.com/pytroll/posttroll>. nameserver keeps track of topics learned from messages broadcasted 
+by publishers and responds to queries from listeners looking for a topic. It has no configuration file and rarely causes
+trouble. This is how task_broker learns about running segment_gatherers.
+
+
+trollstalker
+------------
+kicks things off once a file has been downloaded. trollstalker is part
+of the PyTroll pytroll-collectors project. Additional info on pytroll-
+ollectors is available at
+<https://github.com/pytroll/pytroll-collectors>. 
+
+trollstalker uses inotify to watch for new files and publishes messages 
+to start processing. This means things will only run on Linux. Additionally, it's important to think about inotify's 
+scope. A NFS filesystem with a remote file writer won't work, as inotify wouldn't see the I/O.
+
+segment_gatherer
+----------------
+listens to trollstalker and emits a message once enough data is
+available to produce a product. segment_gatherer is part of the PyTroll
+pytroll-collectors project. Additional info on pytroll-collectors is
+available at <https://github.com/pytroll/pytroll-collectors>. 
+
+One instance of segment_gatherer runs for each product.
+
+task_broker
+-----------
+collects messages from segment_gatherer and provides tasks to 
                   [viirsprocessors](https://github.com/tparker-usgs/avoviirsprocessor)
-  * msg_publisher - publishes Pytroll messages from internal processesing
+
+Distribute product generation tasks. Tasks are encoded as UTF-8 encoded
+strings, suitable for parsing by posttroll.message.Message.decode().
+task_broker tries to avoid assigning the same task twice. If a message
+arrives which matches one already in the queue, that queued task will
+maintain its queue postition and be updated with the new message.
+Duplicate tasks are determined with a 3-tupple of message.subject, 
+message.platform_name, and message.orbit_number. tasks are further
+divided seperate ascending and descending passes.
+
+
+msg_publisher
+-------------
+Publish messages from internal processing. Messages are encoded as UTF-8
+encoded strings, suitable for parsing by
+posttroll.message.Message.decode(). They're also pretty simple to parse
+by hand.
   
-Cron taks:
-  * mirror_gina - searches GINA for recent images and retrieves any found
-  * cleanup - remove old images
+Cron taks
+=========
+mirror_gina
+-----------
+Searches GINA NRT with parameters provided in the environemnt and retrieves any new files found. mirror_gina doesn't
+write its own logs, look for output in the supercronic logs.
 
-Filesystem
-==========
-
-I'll do all of my work under /viirs. When you run the docker image, mount a volume there.
+cleanup
+-------
+Nightly I'll cleanup files in /viirs, removing any that are older than $VIIRS_RETENTION days. All
+files, even ones you might not think of.
 
 
 Environment Variables
@@ -104,80 +174,6 @@ I will email errors generated by mirror_gina and task_broker if these are provid
   * MAILHOST - who can forward mail for me?
   * LOG_SENDER - From: address
   * LOG_RECIPIENT - To: address
-
-
-Logs
-====
-
-All logs are written to viirs/log/avoviirscollector. Daemons will have their own logs, but mirror_gina will show up in 
-the supercronic logs. Unfortunatle, supervisord creates the logs with very restrictive perms. There's an open
-[issue](https://github.com/Supervisor/supervisor/issues/123) on it.
-
-Supervisord logs are also a bit sluggish. It can take upwards of 15 seconds for messages to be flushed to the logs.
-
-
-supervisord
-===========
-Launch deamons and keep them running. Additional info on supervisord is available at <http://supervisord.org/>. Check 
-the supervisord log to see how stable the daemons are. When everything is going well this is a short boring log.
-
-
-supercronic
-===========
-Launch mirror_gina and cleanup. Additional info on supercronic is available at <https://github.com/aptible/supercronic>.
-The supercronic logs will capture anything interesting from mirror_gina.
-
-
-nameserver
-==========
-nameserver is part of the PyTroll posttroll project. Additional info on posttrol is available at
-<https://github.com/pytroll/posttroll>. nameserver keeps track of topics learned from messages broadcasted 
-by publishers and responds to queries from listeners looking for a topic. It has no configuration file and rarely causes
-trouble. This is how task_broker learns about running segment_gatherers.
-
-
-trollstalker
-------------
-trollstalker is part of the PyTroll pytroll-collectors project. Additional info on pytroll-collectors is available at
-<https://github.com/pytroll/pytroll-collectors>. 
-
-trollstalker uses inotify to watch for new files and publishes messages 
-to start processing. This means things will only run on Linux. Additionally, it's important to think about inotify's 
-scope. A NFS filesystem with a remote file writer won't work, as inotify wouldn't see the I/O.
-
-
-segment_gatherer
-----------------
-segment_gatherer is part of the PyTroll pytroll-collectors project. Additional info on pytroll-collectors is available
-at <https://github.com/pytroll/pytroll-collectors>. 
-
-segment_gatherer listens to messages published by trollstalker and publishes a message once sufficient data is available 
-to create a product. One instance of segment_gatherer runs for each product and sends messasges tagged with the product
-to be creted. These messages become the tasks distributed by task_broker.
-
-task_broker
-----------
-Distribute product generation tasks. Tasks are encoded as UTF-8 encoded strings, suitable for parsing by 
-posttroll.message.Message.decode(). task_broker tries to avoid assigning the same task twice. If a message
-arrives which matches one already in the queue, that queued task will maintain its queue postition and be 
-updated with the new message. Duplicate tasks are determined with a 3-tupple of message.subject, 
-message.platform_name, and message.orbit_number.
-
-msg_publisher
--------------
-Publish messages from internal processing. Messages are encoded as UTF-8 encoded strings, suitable for parsing by 
-posttroll.message.Message.decode(). They're also pretty simple to parse by hand.
-
-mirror_gina
------------
-Searches GINA NRT with parameters provided in the environemnt and retrieves any new files found. mirror_gina doesn't
-write its own logs, look for output in the supercronic logs.
-
-
-cleanup
--------
-Nightly I'll cleanup files in /viirs, removing any that are older than $VIIRS_RETENTION days. All
-files, even ones you might not think of.
 
 
 docker-compose
