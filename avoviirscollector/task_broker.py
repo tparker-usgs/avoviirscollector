@@ -75,7 +75,7 @@ class Tasker(threading.Thread):
     def get_message(self, desired_products):
         with msgs_lock:
             msg = None
-            waiting_tasks = {}
+            waiting_tasks = collections.OrderedDict()
             while self.msgs:
                 (key, msg_list) = self.msgs.popitem(last=False)
                 if product(key) in desired_products:
