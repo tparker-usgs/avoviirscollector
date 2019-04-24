@@ -75,17 +75,19 @@ class Tasker(threading.Thread):
     def get_message(self, desired_products):
         with msgs_lock:
             msg = None
-            waiting_tasks = []
+            waiting_tasks = {}
             while self.msgs:
                 (key, msg_list) = self.msgs.popitem(last=False)
                 if product(key) in desired_products:
                     msg = msg_list.pop()
                     if msg_list:
                         logger.debug("requeing {} items".format(len(msg_list)))
-                        self.msgs[key] = msg_list
+                        waiting_tasks[key] = msg_list
                     break
                 else:
-                    waiting_tasks.append(msg_list)
+                    logger.debug("skipping wrong product: %s :: %s",
+                                 product(key), desired_products)
+                    waiting_tasks[key] = msg_list
             for msg_list in waiting_tasks:
                 self.msgs[key] = msg_list
                 self.msgs.move_to_end(key, last=False)
