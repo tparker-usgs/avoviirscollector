@@ -97,7 +97,7 @@ class Tasker(threading.Thread):
             try:
                 request = self.socket.recv_json()
                 logger.debug("received request: %s", request)
-            except JSONDecodeError as e:
+            except JSONDecodeError:
                 logger.exception("Bad reqeust from client")
                 pass
             try:
