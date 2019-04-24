@@ -88,8 +88,8 @@ class Tasker(threading.Thread):
                     logger.debug("skipping wrong product: %s :: %s",
                                  product(key), desired_products)
                     waiting_tasks[key] = msg_list
-            for msg_list in waiting_tasks:
-                self.msgs[key] = msg_list
+            for key, val in waiting_tasks.items():
+                self.msgs[key] = val
                 self.msgs.move_to_end(key, last=False)
         if msg is None:
             raise KeyError('No matching tasks waiting')
