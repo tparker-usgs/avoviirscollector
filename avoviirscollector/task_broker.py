@@ -22,7 +22,7 @@ from datetime import timedelta
 import zmq
 from posttroll.subscriber import Subscribe
 import tomputils.util as tutil
-from avoviirscollector.viirs import product_key, products
+from avoviirscollector.viirs import product_key, products, product
 
 
 TOPIC = "pytroll://AVO/viirs/granule"
@@ -72,22 +72,32 @@ class Tasker(threading.Thread):
     def __init__(self, context, msgs):
         Server.__init__(self, context, msgs, zmq.REP, TASKER_ADDRESS)
 
-    def get_message(self):
+    def get_message(self, desired_products):
         with msgs_lock:
-            (key, msg_list) = self.msgs.popitem(last=False)
-            msg = msg_list.pop()
-            if msg_list:
-                logger.debug("requeing {} items".format(len(msg_list)))
+            waiting_tasks = []
+            while self.msgs:
+                (key, msg_list) = self.msgs.popitem(last=False)
+                if product(key) in desired_products:
+                    msg = msg_list.pop()
+                    if msg_list:
+                        logger.debug("requeing {} items".format(len(msg_list)))
+                        self.msgs[key] = msg_list
+                    break
+                else:
+                    waiting_tasks.append(msg_list)
+            for msg_list in waiting_tasks:
                 self.msgs[key] = msg_list
+                self.msgs.move_to_end(key, last=False)
+
         return msg
 
     def run(self):
         while True:
             logger.debug("waiting for request")
-            self.socket.recv()
-            logger.debug("received request")
+            request = self.socket.recv_json()
+            logger.debug("received request: %s", request)
             try:
-                msg = self.get_message()
+                msg = self.get_message(request['desired products'])
                 self.socket.send(bytes(msg.encode(), 'UTF-8'))
                 logger.debug("sent response")
             except KeyError:
