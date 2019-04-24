@@ -23,7 +23,7 @@ import zmq
 from posttroll.subscriber import Subscribe
 import tomputils.util as tutil
 from avoviirscollector.viirs import product_key, products, product
-
+from json.decoder import JSONDecodeError
 
 TOPIC = "pytroll://AVO/viirs/granule"
 UPDATER_ADDRESS = "tcp://*:19191"
@@ -94,8 +94,12 @@ class Tasker(threading.Thread):
     def run(self):
         while True:
             logger.debug("waiting for request")
-            request = self.socket.recv_json()
-            logger.debug("received request: %s", request)
+            try:
+                request = self.socket.recv_json()
+                logger.debug("received request: %s", request)
+            except JSONDecodeError as e:
+                logger.exception("Bad reqeust from client")
+                pass
             try:
                 msg = self.get_message(request['desired products'])
                 self.socket.send(bytes(msg.encode(), 'UTF-8'))
