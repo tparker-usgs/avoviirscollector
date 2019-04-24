@@ -15,6 +15,7 @@ COPY avoviirscollector avoviirscollector
 RUN python setup.py install
 
 COPY supervisord.conf /etc/supervisor/supervisord.conf
+ENV PYTHONUNBUFFERED=1
 
 RUN pip freeze > requirements.txt
 CMD ["supervisord"]
