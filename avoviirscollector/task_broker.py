@@ -74,6 +74,7 @@ class Tasker(threading.Thread):
 
     def get_message(self, desired_products):
         with msgs_lock:
+            msg = None
             waiting_tasks = []
             while self.msgs:
                 (key, msg_list) = self.msgs.popitem(last=False)
@@ -88,6 +89,8 @@ class Tasker(threading.Thread):
             for msg_list in waiting_tasks:
                 self.msgs[key] = msg_list
                 self.msgs.move_to_end(key, last=False)
+        if msg is None:
+            raise KeyError('No matching tasks waiting')
 
         return msg
 
@@ -103,7 +106,7 @@ class Tasker(threading.Thread):
             try:
                 msg = self.get_message(request['desired products'])
                 self.socket.send(bytes(msg.encode(), 'UTF-8'))
-                logger.debug("sent response")
+                logger.debug("sent task")
             except KeyError:
                 self.socket.send(b'')
                 logger.debug("sent empty message")
