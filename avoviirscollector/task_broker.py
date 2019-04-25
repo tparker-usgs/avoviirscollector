@@ -22,8 +22,8 @@ from datetime import timedelta
 import zmq
 from posttroll.subscriber import Subscribe
 import tomputils.util as tutil
-from avoviirscollector.viirs import product_key, products
-
+from avoviirscollector.viirs import product_key, products, product
+from json.decoder import JSONDecodeError
 
 TOPIC = "pytroll://AVO/viirs/granule"
 UPDATER_ADDRESS = "tcp://*:19191"
@@ -72,24 +72,43 @@ class Tasker(threading.Thread):
     def __init__(self, context, msgs):
         Server.__init__(self, context, msgs, zmq.REP, TASKER_ADDRESS)
 
-    def get_message(self):
+    def get_message(self, desired_products):
         with msgs_lock:
-            (key, msg_list) = self.msgs.popitem(last=False)
-            msg = msg_list.pop()
-            if msg_list:
-                logger.debug("requeing {} items".format(len(msg_list)))
-                self.msgs[key] = msg_list
+            msg = None
+            waiting_tasks = collections.OrderedDict()
+            while self.msgs:
+                (key, msg_list) = self.msgs.popitem(last=False)
+                if product(key) in desired_products:
+                    msg = msg_list.pop()
+                    if msg_list:
+                        logger.debug("requeing {} items".format(len(msg_list)))
+                        waiting_tasks[key] = msg_list
+                    break
+                else:
+                    logger.debug("skipping wrong product: %s :: %s",
+                                 product(key), desired_products)
+                    waiting_tasks[key] = msg_list
+            for key, val in waiting_tasks.items():
+                self.msgs[key] = val
+                self.msgs.move_to_end(key, last=False)
+        if msg is None:
+            raise KeyError('No matching tasks waiting')
+
         return msg
 
     def run(self):
         while True:
             logger.debug("waiting for request")
-            self.socket.recv()
-            logger.debug("received request")
             try:
-                msg = self.get_message()
+                request = self.socket.recv_json()
+                logger.debug("received request: %s", request)
+            except JSONDecodeError:
+                logger.exception("Bad reqeust from client")
+                pass
+            try:
+                msg = self.get_message(request['desired products'])
                 self.socket.send(bytes(msg.encode(), 'UTF-8'))
-                logger.debug("sent response")
+                logger.debug("sent task")
             except KeyError:
                 self.socket.send(b'')
                 logger.debug("sent empty message")

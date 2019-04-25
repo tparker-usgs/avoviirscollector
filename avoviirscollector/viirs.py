@@ -53,7 +53,12 @@ def product_key(message):
 
 
 def products(keys):
-    return [product.split()[0] for product in keys]
+    return [product(key) for key in keys]
+
+
+def product(key):
+    topic = key.split(';')[0]
+    return topic.split('/')[-1]
 
 
 def filename_comparator(name1, name2):
