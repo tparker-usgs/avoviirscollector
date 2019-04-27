@@ -72,21 +72,24 @@ class Tasker(threading.Thread):
     def __init__(self, context, msgs):
         Server.__init__(self, context, msgs, zmq.REP, TASKER_ADDRESS)
 
-    def get_message(self, desired_products):
+    def get_message(self, request):
         with msgs_lock:
             msg = None
             waiting_tasks = collections.OrderedDict()
             while self.msgs:
                 (key, msg_list) = self.msgs.popitem(last=False)
-                if product(key) in desired_products:
-                    msg = msg_list.pop()
+                if product(key) in request['desired products']:
+                    if 'just testing' in request and request['just testing']:
+                        msg = msg_list[-1]
+                    else:
+                       msg = msg_list.pop()
                     if msg_list:
                         logger.debug("requeing {} items".format(len(msg_list)))
                         waiting_tasks[key] = msg_list
                     break
                 else:
                     logger.debug("skipping wrong product: %s :: %s",
-                                 product(key), desired_products)
+                                 product(key), request['desired products'])
                     waiting_tasks[key] = msg_list
             for key, val in waiting_tasks.items():
                 self.msgs[key] = val
@@ -106,7 +109,7 @@ class Tasker(threading.Thread):
                 logger.exception("Bad reqeust from client")
                 pass
             try:
-                msg = self.get_message(request['desired products'])
+                msg = self.get_message(request)
                 self.socket.send(bytes(msg.encode(), 'UTF-8'))
                 logger.debug("sent task")
             except KeyError:
