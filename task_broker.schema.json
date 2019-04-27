@@ -1,0 +1,30 @@
+ {
+   "$schema": "http://json-schema.org/draft-07/schema#",
+   "type": "object",
+   "title": "task_broker request",
+   "required": ["desired products"],
+   "properties": {
+    "desired products": {
+      "type": "array",
+      "title": "Requested products",
+      "items": {
+        "minItems": 1,
+        "type": "string",
+        "minLength": 1,
+        "title": "A product",
+        "default": "",
+        "examples": [
+          "tir",
+          "mir",
+          "btd",
+          "vis"
+        ]
+      }
+    },
+    "just testing": {
+      "type": "boolean",
+      "title": "If true, I'm not making any promises",
+      "default": false
+    }
+  }
+}
