@@ -83,9 +83,6 @@ class MirrorGina(object):
         buf.close()
 
         logger.info("Found %s files", len(files))
-        files.sort(key=cmp_to_key(lambda a, b:
-                                  viirs.filename_comparator(a['url'],
-                                                            b['url'])))
         return files
 
     def queue_files(self, file_list):
@@ -124,6 +121,9 @@ class MirrorGina(object):
     def fetch_files(self):
         file_list = self.get_file_list()
         file_queue = self.queue_files(file_list)
+        file_queue.sort(key=cmp_to_key(lambda a, b:
+                                       viirs.filename_comparator(a['url'],
+                                                                 b['url'])))
 
         for file in file_queue:
             url = file['url']
