@@ -57,7 +57,7 @@ class Viirs(object):
 
     def __lt__(self, other):
         lt = self.orbit > other.orbit
-        lt = lt or (self.orbit == other.orbit and self.time < other.time)
+        lt = lt or (self.orbit == other.orbit and self.start < other.start)
         lt = lt or (self.start == other.start and self.channel < other.channel)
         return lt
 
