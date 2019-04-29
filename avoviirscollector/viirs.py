@@ -20,10 +20,13 @@ SVM01_npp_d20130117_t2059265_e2100506_b06349_c20130118032130407525_noaa_ops.h5
 """
 
 from datetime import datetime
+from functools import total_ordering
 
 
+@total_ordering
 class Viirs(object):
-    def __init__(self, filename):
+    def __init__(self, filename, md5):
+        self.md5 = md5
         self.filename = filename
         self.basename = filename.split('/')[-1]
         parts = self.basename.split('_')
@@ -43,8 +46,20 @@ class Viirs(object):
         out_string += 'end: %s\n' % self.end
         out_string += 'orbit: %s\n' % self.orbit
         out_string += 'proc_date: %s\n' % self.proc_date
-
         return out_string
+
+    def __eq__(self, other):
+        eq = isinstance(other, Viirs)
+        eq = eq and self.orbit == other.orbit
+        eq = eq and self.start == other.start
+        eq = eq and self.channel == other.channel
+        return eq
+
+    def __lt__(self, other):
+        lt = self.orbit > other.orbit
+        lt = lt or (self.orbit == other.orbit and self.time < other.time)
+        lt = lt or (self.start == other.start and self.channel < other.channel)
+        return lt
 
 
 def product_key(message):
@@ -59,33 +74,3 @@ def products(keys):
 def product(key):
     topic = key.split(';')[0]
     return topic.split('/')[-1]
-
-
-def filename_comparator(name1, name2):
-    """
-    Sort VIIRS filenames. Decreasing by orbit, then increasing by time,
-    then alphabetical (geo before data).
-
-    :param name1:
-    :param name2:
-    :return:
-    """
-    v1 = Viirs(name1)
-    v2 = Viirs(name2)
-
-    if v1.orbit > v2.orbit:
-        rc = -1
-    elif v1.orbit < v2.orbit:
-        rc = 1
-    elif v1.start > v2.start:
-        rc = 1
-    elif v1.start < v2.start:
-        rc = -1
-    elif v1.channel > v2.channel:
-        rc = 1
-    elif v1.channel < v2.channel:
-        rc = -1
-    else:
-        rc = 0
-
-    return rc

@@ -27,11 +27,10 @@ import tomputils.util as tutil
 import hashlib
 import socket
 from io import BytesIO
-from avoviirscollector import viirs
+from avoviirscollector.viirs import Viirs
 import h5py
 from tomputils.downloader import Downloader
 import multiprocessing_logging
-from functools import cmp_to_key
 from multiprocessing import Process
 from single import Lock
 
@@ -79,7 +78,10 @@ class MirrorGina(object):
         c.setopt(c.WRITEFUNCTION, buf.write)
         c.perform()
 
-        files = json.loads(buf.getvalue())
+        files = []
+        for file in json.loads(buf.getvalue()):
+            files.append(Viirs(file['url'], file['md5']))
+
         buf.close()
 
         logger.info("Found %s files", len(files))
@@ -90,15 +92,12 @@ class MirrorGina(object):
         pattern = re.compile(self.config['match'])
         logger.debug("%d files before pruning", len(file_list))
         for new_file in file_list:
-            out_file = path_from_url(self.out_path, new_file['url'])
-            # tmp_path = self.path_from_url(self.tmp_path, new_file['url'])
-
+            out_file = path_from_url(self.out_path, new_file.url)
             if pattern.search(out_file) and not os.path.exists(out_file):
-                logger.debug("Queueing %s", new_file['url'])
+                logger.debug("Queueing %s", new_file.url)
                 queue.append(new_file)
             else:
-                logger.debug("Skipping %s", new_file['url'])
-
+                logger.debug("Skipping %s", new_file.url)
         logger.info("%d files after pruning", len(queue))
         return queue
 
@@ -121,21 +120,18 @@ class MirrorGina(object):
     def fetch_files(self):
         file_list = self.get_file_list()
         file_queue = self.queue_files(file_list)
-        file_queue.sort(key=cmp_to_key(lambda a, b:
-                                       viirs.filename_comparator(a['url'],
-                                                                 b['url'])))
+        file_queue.sort()
 
         for file in file_queue:
-            url = file['url']
+            url = file.url
             tmp_file = path_from_url(self.tmp_path, url)
             logger.debug("Fetching %s from %s" % (tmp_file, url))
             dl = Downloader(max_con=self.connection_count)
             dl.fetch(url, tmp_file)
-            md5 = file['md5sum']
             file_md5 = hashlib.md5(open(tmp_file, 'rb').read()).hexdigest()
-            logger.debug("MD5 %s : %s" % (md5, file_md5))
+            logger.debug("MD5 %s : %s" % (file.md5, file_md5))
 
-            if md5 == file_md5:
+            if file.md5 == file_md5:
                 try:
                     h5py.File(tmp_file, 'r')
                 except Exception as e:
@@ -151,7 +147,7 @@ class MirrorGina(object):
             else:
                 size = os.path.getsize(tmp_file)
                 msg = 'Bad checksum: %s != %s (%d bytes)'
-                logger.info(msg, file_md5, md5, size)
+                logger.info(msg, file_md5, file.md5, size)
                 os.unlink(tmp_file)
 
 
