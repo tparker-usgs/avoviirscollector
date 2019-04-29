@@ -25,10 +25,10 @@ from functools import total_ordering
 
 @total_ordering
 class Viirs(object):
-    def __init__(self, filename, md5):
+    def __init__(self, url, md5):
         self.md5 = md5
-        self.filename = filename
-        self.basename = filename.split('/')[-1]
+        self.url = url
+        self.basename = url.split('/')[-1]
         parts = self.basename.split('_')
         self.channel = parts[0]
         self.satellite = parts[1]
