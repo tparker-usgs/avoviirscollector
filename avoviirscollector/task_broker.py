@@ -82,7 +82,7 @@ class Tasker(threading.Thread):
                     if 'just testing' in request and request['just testing']:
                         msg = msg_list[-1]
                     else:
-                       msg = msg_list.pop()
+                        msg = msg_list.pop()
                     if msg_list:
                         logger.debug("requeing {} items".format(len(msg_list)))
                         waiting_tasks[key] = msg_list
