@@ -80,7 +80,7 @@ class MirrorGina(object):
 
         files = []
         for file in json.loads(buf.getvalue()):
-            files.append(Viirs(file['url'], file['md5']))
+            files.append(Viirs(file['url'], file['md5sum']))
 
         buf.close()
 
