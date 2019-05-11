@@ -68,7 +68,10 @@ def product_key(message):
 
 
 def products(keys):
-    return [product(key) for key in keys]
+    product_list = [product(key) for key in keys]
+    product_set = set(product_list)
+    unique_list = list(product_set)
+    return unique_list
 
 
 def product(key):
