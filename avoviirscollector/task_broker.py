@@ -62,8 +62,8 @@ class Updater(Server):
         while True:
             update = {}
             update['queue length'] = len(self.msgs)
-            products = products(self.msgs.keys())
-            unique_products = list(set(products))
+            waiting_products = products(self.msgs.keys())
+            unique_products = list(set(waiting_products))
             update['products waiting'] = unique_products
             self.socket.send_json(update)
             logger.debug("Updater: queue length:: %d", update['queue length'])
