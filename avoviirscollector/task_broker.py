@@ -37,7 +37,7 @@ class ClientTask(threading.Thread):
         self.msgs = msgs
 
     def run(self):
-        with Subscribe('', TOPIC, True) as sub:
+        with Subscribe("", TOPIC, True) as sub:
             for new_msg in sub.recv():
                 try:
                     logger.debug("received message (%d)", len(self.msgs))
@@ -61,12 +61,12 @@ class Updater(Server):
     def run(self):
         while True:
             update = {}
-            update['queue length'] = len(self.msgs)
+            update["queue length"] = len(self.msgs)
             waiting_products = products(self.msgs.keys())
             unique_products = list(set(waiting_products))
-            update['products waiting'] = unique_products
+            update["products waiting"] = unique_products
             self.socket.send_json(update)
-            logger.debug("Updater: queue length:: %d", update['queue length'])
+            logger.debug("Updater: queue length:: %d", update["queue length"])
             time.sleep(1)
 
 
@@ -80,8 +80,8 @@ class Tasker(threading.Thread):
             waiting_tasks = collections.OrderedDict()
             while self.msgs:
                 (key, msg_list) = self.msgs.popitem(last=False)
-                if product(key) in request['desired products']:
-                    if 'just testing' in request and request['just testing']:
+                if product(key) in request["desired products"]:
+                    if "just testing" in request and request["just testing"]:
                         msg = msg_list[-1]
                     else:
                         msg = msg_list.pop()
@@ -90,14 +90,17 @@ class Tasker(threading.Thread):
                         waiting_tasks[key] = msg_list
                     break
                 else:
-                    logger.debug("skipping wrong product: %s :: %s",
-                                 product(key), request['desired products'])
+                    logger.debug(
+                        "skipping wrong product: %s :: %s",
+                        product(key),
+                        request["desired products"],
+                    )
                     waiting_tasks[key] = msg_list
             for key, val in waiting_tasks.items():
                 self.msgs[key] = val
                 self.msgs.move_to_end(key, last=False)
         if msg is None:
-            raise KeyError('No matching tasks waiting')
+            raise KeyError("No matching tasks waiting")
 
         return msg
 
@@ -112,10 +115,10 @@ class Tasker(threading.Thread):
                 pass
             try:
                 msg = self.get_message(request)
-                self.socket.send(bytes(msg.encode(), 'UTF-8'))
+                self.socket.send(bytes(msg.encode(), "UTF-8"))
                 logger.debug("sent task")
             except KeyError:
-                self.socket.send(b'')
+                self.socket.send(b"")
                 logger.debug("sent empty message")
 
 
@@ -129,16 +132,19 @@ def queue_msg(msgs, new_msg):
         new_data = new_msg.data
         for msg in msgs[key]:
             queued_data = msg.data
-            time_diff = abs(queued_data['start_time'] - new_data['start_time'])
+            time_diff = abs(queued_data["start_time"] - new_data["start_time"])
             if time_diff < ORBIT_SLACK:
                 logger.debug("updating messge %s", key)
-                queued_data['start_time'] = min(queued_data['start_time'],
-                                                new_data['start_time'])
-                queued_data['start_date'] = min(queued_data['start_date'],
-                                                new_data['start_date'])
-                queued_data['end_time'] = max(queued_data['end_time'],
-                                              new_data['end_time'])
-                queued_data['dataset'] += new_data['dataset']
+                queued_data["start_time"] = min(
+                    queued_data["start_time"], new_data["start_time"]
+                )
+                queued_data["start_date"] = min(
+                    queued_data["start_date"], new_data["start_date"]
+                )
+                queued_data["end_time"] = max(
+                    queued_data["end_time"], new_data["end_time"]
+                )
+                queued_data["dataset"] += new_data["dataset"]
                 new_msg = None
                 break
 
@@ -176,5 +182,5 @@ def main():
     updater.join()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

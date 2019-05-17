@@ -35,18 +35,20 @@ from multiprocessing import Process
 from single import Lock
 
 
-GINA_URL = ('http://nrt-status.gina.alaska.edu/products.json'
-            + '?action=index&commit=Get+Products&controller=products')
-VIIRS_BASE = '/viirs'
+GINA_URL = (
+    "http://nrt-status.gina.alaska.edu/products.json"
+    + "?action=index&commit=Get+Products&controller=products"
+)
+VIIRS_BASE = "/viirs"
 
 
 class MirrorGina(object):
     def __init__(self, base_dir, config):
         self.base_dir = base_dir
-        self.tmp_path = os.path.join(base_dir, 'tmp')
+        self.tmp_path = os.path.join(base_dir, "tmp")
         self.config = config
-        self.out_path = os.path.join(self.base_dir, self.config['out_path'])
-        self.connection_count = int(tutil.get_env_var('NUM_GINA_CONNECTIONS'))
+        self.out_path = os.path.join(self.base_dir, self.config["out_path"])
+        self.connection_count = int(tutil.get_env_var("NUM_GINA_CONNECTIONS"))
 
         # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
         # the libcurl tutorial for more info.
@@ -59,17 +61,17 @@ class MirrorGina(object):
 
     def get_file_list(self):
         logger.debug("fetching files")
-        backfill = timedelta(days=int(tutil.get_env_var('GINA_BACKFILL_DAYS')))
+        backfill = timedelta(days=int(tutil.get_env_var("GINA_BACKFILL_DAYS")))
         end_date = datetime.utcnow() + timedelta(days=1)
         start_date = end_date - backfill
 
         url = GINA_URL
-        url += '&start_date=' + start_date.strftime('%Y-%m-%d')
-        url += '&end_date=' + end_date.strftime('%Y-%m-%d')
-        url += '&sensors[]=' + self.config['sensor']
-        url += '&processing_levels[]=' + self.config['level']
-        url += '&facilities[]=' + tutil.get_env_var('VIIRS_FACILITY')
-        url += '&satellites[]=' + self.config['satellite']
+        url += "&start_date=" + start_date.strftime("%Y-%m-%d")
+        url += "&end_date=" + end_date.strftime("%Y-%m-%d")
+        url += "&sensors[]=" + self.config["sensor"]
+        url += "&processing_levels[]=" + self.config["level"]
+        url += "&facilities[]=" + tutil.get_env_var("VIIRS_FACILITY")
+        url += "&satellites[]=" + self.config["satellite"]
         logger.debug("URL: %s", url)
         buf = BytesIO()
 
@@ -80,7 +82,7 @@ class MirrorGina(object):
 
         files = []
         for file in json.loads(buf.getvalue()):
-            files.append(Viirs(file['url'], file['md5sum']))
+            files.append(Viirs(file["url"], file["md5sum"]))
 
         buf.close()
 
@@ -89,7 +91,7 @@ class MirrorGina(object):
 
     def queue_files(self, file_list):
         queue = []
-        pattern = re.compile(self.config['match'])
+        pattern = re.compile(self.config["match"])
         logger.debug("%d files before pruning", len(file_list))
         for new_file in file_list:
             out_file = path_from_url(self.out_path, new_file.url)
@@ -128,25 +130,24 @@ class MirrorGina(object):
             logger.debug("Fetching %s from %s" % (tmp_file, url))
             dl = Downloader(max_con=self.connection_count)
             dl.fetch(url, tmp_file)
-            file_md5 = hashlib.md5(open(tmp_file, 'rb').read()).hexdigest()
+            file_md5 = hashlib.md5(open(tmp_file, "rb").read()).hexdigest()
             logger.debug("MD5 %s : %s" % (file.md5, file_md5))
 
             if file.md5 == file_md5:
                 try:
-                    h5py.File(tmp_file, 'r')
+                    h5py.File(tmp_file, "r")
                 except Exception as e:
-                    logger.info('Bad HDF5 file %s', tmp_file)
+                    logger.info("Bad HDF5 file %s", tmp_file)
                     logger.info(e)
                     os.unlink(tmp_file)
                 else:
                     out_file = path_from_url(self.out_path, url)
-                    msg = "File looks good. Moving {} to {}".format(tmp_file,
-                                                                    out_file)
+                    msg = "File looks good. Moving {} to {}".format(tmp_file, out_file)
                     logger.info(msg)
                     os.rename(tmp_file, out_file)
             else:
                 size = os.path.getsize(tmp_file)
-                msg = 'Bad checksum: %s != %s (%d bytes)'
+                msg = "Bad checksum: %s != %s (%d bytes)"
                 logger.info(msg, file_md5, file.md5, size)
                 os.unlink(tmp_file)
 
@@ -159,21 +160,20 @@ def path_from_url(base, url):
 
 
 def poll_queue(config):
-    lock_file = os.path.join(VIIRS_BASE,
-                             "tmp", "{}.lock".format(config['name']))
+    lock_file = os.path.join(VIIRS_BASE, "tmp", "{}.lock".format(config["name"]))
 
     lock = Lock(lock_file)
     gotlock, pid = lock.lock_pid()
     if not gotlock:
-        logger.info("Queue {} locked, skipping".format(config['name']))
+        logger.info("Queue {} locked, skipping".format(config["name"]))
         return
 
     try:
-        logger.info("Launching queueu: %s", config['name'])
+        logger.info("Launching queueu: %s", config["name"])
         mirror_gina = MirrorGina(VIIRS_BASE, config)
         mirror_gina.fetch_files()
     finally:
-        logger.info("All done with queue %s.", config['name'])
+        logger.info("All done with queue %s.", config["name"])
         for handler in logger.handlers:
             handler.flush()
 
@@ -186,9 +186,9 @@ def poll_queue(config):
 
 def poll_queues():
     procs = []
-    for queue in global_config['queues']:
-        if 'disabled' in queue and queue['disabled']:
-            logger.info("Queue %s is disabled, skiping it.", queue['name'])
+    for queue in global_config["queues"]:
+        if "disabled" in queue and queue["disabled"]:
+            logger.info("Queue %s is disabled, skiping it.", queue["name"])
         else:
             p = Process(target=poll_queue, args=(queue,))
             procs.append(p)
@@ -206,7 +206,7 @@ def main():
     # logger.setLevel(logging.getLevelName('INFO'))
     multiprocessing_logging.install_mp_handler()
 
-    config_file = '/app/avoviirscollector/mirrorGina.yaml'
+    config_file = "/app/avoviirscollector/mirrorGina.yaml"
     global global_config
     global_config = tutil.parse_config(config_file)
 

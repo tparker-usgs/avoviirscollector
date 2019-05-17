@@ -32,12 +32,12 @@ def main():
     socket.bind("tcp://*:29092")
     logger.debug("Listening for subscribers.")
 
-    with Subscribe('', '', True) as sub:
+    with Subscribe("", "", True) as sub:
         for msg in sub.recv():
             msg_string = msg.encode()
             logger.debug("sending msg: %s", msg_string)
-            socket.send(bytes(msg_string, 'UTF-8'))
+            socket.send(bytes(msg_string, "UTF-8"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

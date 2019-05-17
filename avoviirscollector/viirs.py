@@ -28,24 +28,23 @@ class Viirs(object):
     def __init__(self, url, md5):
         self.md5 = md5
         self.url = url
-        self.basename = url.split('/')[-1]
-        parts = self.basename.split('_')
+        self.basename = url.split("/")[-1]
+        parts = self.basename.split("_")
         self.channel = parts[0]
         self.satellite = parts[1]
-        self.start = datetime.strptime(parts[2] + "_" + parts[3],
-                                       'd%Y%m%d_t%H%M%S%f')
-        self.end = datetime.strptime(parts[4], 'e%H%M%S%f')
+        self.start = datetime.strptime(parts[2] + "_" + parts[3], "d%Y%m%d_t%H%M%S%f")
+        self.end = datetime.strptime(parts[4], "e%H%M%S%f")
         self.orbit = int(parts[5][1:])
-        self.proc_date = datetime.strptime(parts[6], 'c%Y%m%d%H%M%S%f')
+        self.proc_date = datetime.strptime(parts[6], "c%Y%m%d%H%M%S%f")
 
     def __str__(self):
-        out_string = 'filename: %s\n' % self.basename
-        out_string += 'channel: %s\n' % self.channel
-        out_string += 'satellite: %s\n' % self.satellite
-        out_string += 'start: %s\n' % self.start
-        out_string += 'end: %s\n' % self.end
-        out_string += 'orbit: %s\n' % self.orbit
-        out_string += 'proc_date: %s\n' % self.proc_date
+        out_string = "filename: %s\n" % self.basename
+        out_string += "channel: %s\n" % self.channel
+        out_string += "satellite: %s\n" % self.satellite
+        out_string += "start: %s\n" % self.start
+        out_string += "end: %s\n" % self.end
+        out_string += "orbit: %s\n" % self.orbit
+        out_string += "proc_date: %s\n" % self.proc_date
         return out_string
 
     def __eq__(self, other):
@@ -63,8 +62,13 @@ class Viirs(object):
 
 
 def product_key(message):
-    return ";".join((message.subject, message.data['platform_name'],
-                    str(message.data['orbit_number'])))
+    return ";".join(
+        (
+            message.subject,
+            message.data["platform_name"],
+            str(message.data["orbit_number"]),
+        )
+    )
 
 
 def products(keys):
@@ -75,5 +79,5 @@ def products(keys):
 
 
 def product(key):
-    topic = key.split(';')[0]
-    return topic.split('/')[-1]
+    topic = key.split(";")[0]
+    return topic.split("/")[-1]
