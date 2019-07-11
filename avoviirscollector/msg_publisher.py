@@ -29,6 +29,10 @@ def main():
 
     context = zmq.Context()
     socket = context.socket(zmq.PUB)
+    socket.setsockopt(zmq.TCP_KEEPALIVE, 1)
+    socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 60)
+    socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 20)
+    socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 60)
     socket.bind("tcp://*:29092")
     logger.debug("Listening for subscribers.")
 

@@ -16,6 +16,10 @@ import zmq
 
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
+socket.setsockopt(zmq.TCP_KEEPALIVE, 1)
+socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 60)
+socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 20)
+socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 60)
 
 print("Connecting to msg_publisher...")
 socket.connect("tcp://localhost:29092")

@@ -51,6 +51,10 @@ class Server(threading.Thread):
         threading.Thread.__init__(self)
         self.msgs = msgs
         self.socket = context.socket(socket_type)
+        self.socket.setsockopt(zmq.TCP_KEEPALIVE, 1)
+        self.socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 60)
+        self.socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 20)
+        self.socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 60)
         self.socket.bind(address)
 
 
