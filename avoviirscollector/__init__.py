@@ -15,5 +15,6 @@ Fetch viirs data at AVO
     http://creativecommons.org/publicdomain/zero/1.0/
 """
 
+from avoviirscollector.version import __version__
 
-__version__ = "3.13.11"
+__all__ = ["__version__"]

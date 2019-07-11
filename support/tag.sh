@@ -2,7 +2,7 @@
 
 VERSION=`python -c "import avoviirscollector; print(avoviirscollector.__version__)"`
 echo Tagging release $VERSION
-git add avoviirscollector/__init__.py
+git add avoviirscollector/version.py
 git commit -m 'version bump'
 git push \
 && git tag $VERSION \
