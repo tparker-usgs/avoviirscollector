@@ -27,13 +27,14 @@ import tomputils.util as tutil
 import hashlib
 import socket
 from io import BytesIO
-from avoviirscollector.viirs import Viirs
+from .viirs import Viirs
 import h5py
 from tomputils.downloader import Downloader
 import multiprocessing_logging
 from multiprocessing import Process
 from single import Lock
-
+import boto3
+from shutil import copyfile
 
 GINA_URL = (
     "http://nrt-status.gina.alaska.edu/products.json"
@@ -49,6 +50,7 @@ class MirrorGina(object):
         self.config = config
         self.out_path = os.path.join(self.base_dir, self.config["out_path"])
         self.connection_count = int(tutil.get_env_var("NUM_GINA_CONNECTIONS"))
+        self.s3_bucket_name = tutil.get_env_var("S3_BUCKET_NAME", None)
 
         # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
         # the libcurl tutorial for more info.
@@ -141,10 +143,14 @@ class MirrorGina(object):
                     logger.info(e)
                     os.unlink(tmp_file)
                 else:
-                    out_file = path_from_url(self.out_path, url)
-                    msg = "File looks good. Moving {} to {}".format(tmp_file, out_file)
-                    logger.info(msg)
-                    os.rename(tmp_file, out_file)
+                    if self.out_path:
+                        out_file = path_from_url(self.out_path, url)
+                        msg = "File looks good. Moving {} to {}".format(tmp_file, out_file)
+                        logger.info(msg)
+                        copyfile(tmp_file, out_file)
+                    if self.s3_bucket_name:
+                        bucket = boto3.resource('s3').Bucket(self.s3_name)
+                        bucket.upload_file(tmp_file, filename_from_url(url))
             else:
                 size = os.path.getsize(tmp_file)
                 msg = "Bad checksum: %s != %s (%d bytes)"
@@ -152,11 +158,13 @@ class MirrorGina(object):
                 os.unlink(tmp_file)
 
 
-def path_from_url(base, url):
+def filename_from_url(url):
     path = urlparse(url).path
-    filename = posixpath.basename(path)
+    return posixpath.basename(path)
 
-    return os.path.join(base, filename)
+
+def path_from_url(base, url):
+    return os.path.join(base, filename_from_url(url))
 
 
 def poll_queue(config):
