@@ -28,7 +28,8 @@ setup(
         'tomputils>=1.12.16',
         'multiprocessing_logging',
         'h5py',
-        'single'
+        'single',
+        'boto3',
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
