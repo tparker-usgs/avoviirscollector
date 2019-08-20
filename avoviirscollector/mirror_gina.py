@@ -151,7 +151,7 @@ class MirrorGina(object):
                         logger.info(msg)
                         copyfile(tmp_file, out_file)
                     if self.s3_bucket_name:
-                        bucket = boto3.resource("s3").Bucket(self.s3_name)
+                        bucket = boto3.resource("s3").Bucket(self.s3_bucket_name)
                         bucket.upload_file(tmp_file, filename_from_url(url))
             else:
                 size = os.path.getsize(tmp_file)
