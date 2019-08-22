@@ -35,7 +35,6 @@ from multiprocessing import Process
 from single import Lock
 import boto3
 from shutil import copyfile
-from urllib3.exceptions import SSLError
 
 
 GINA_URL = (
