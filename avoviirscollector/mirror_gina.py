@@ -123,10 +123,6 @@ class MirrorGina(object):
 
         return m
 
-    def s3_upload(self, src_file, key):
-        bucket = boto3.resource("s3").Bucket(self.s3_bucket_name)
-        bucket.upload_file(src_file, key)
-
     def fetch_files(self):
         file_list = self.get_file_list()
         file_queue = self.queue_files(file_list)
@@ -158,13 +154,11 @@ class MirrorGina(object):
                         copyfile(tmp_file, out_file)
                     if self.s3_bucket_name:
                         key = filename_from_url(url)
-                        try:
-                            self.s3_upload(tmp_file, key)
-                        except SSLError:
-                            ca_bundle = tutil.get_env_var("REQUESTS_CA_BUNDLE")
-                            del os.environ["REQUESTS_CA_BUNDLE"]
-                            self.s3_upload(tmp_file, key)
-                            os.environ["REQUESTS_CA_BUNDLE"] = ca_bundle
+                        ca_bundle = tutil.get_env_var("REQUESTS_CA_BUNDLE", None)
+                        s3 = boto3.resource("s3", verify=ca_bundle)
+                        bucket = s3.Bucket(self.s3_bucket_name)
+                        bucket.upload_file(tmp_file, key)
+
             else:
                 size = os.path.getsize(tmp_file)
                 msg = "Bad checksum: %s != %s (%d bytes)"
