@@ -160,13 +160,20 @@ class MirrorGina(object):
                         key = filename_from_url(url)
                         ca_bundle = tutil.get_env_var("REQUESTS_CA_BUNDLE", None)
                         try:
+                            logger.debug("TOMP: creating resource")
                             s3 = boto3.resource("s3", verify=ca_bundle)
+                            logger.debug("TOMP: creating bucket")
                             bucket = s3.Bucket(self.s3_bucket_name)
+                            logger.debug("TOMP: bucket upload")
                             bucket.upload_file(tmp_file, key)
+                            logger.debug("TOMP: upload complete")
                         except Exception as e:
+                            logger.debug("TOMP: caught exception")
                             logger.error(
                                 "Caught exception {} using bundle {}", e, ca_bundle
                             )
+                            logger.error("TOMP: %s", e.__doc__)
+                            logger.error("TOMP: %s", e.message)
 
             else:
                 size = os.path.getsize(tmp_file)
