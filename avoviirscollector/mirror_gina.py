@@ -35,7 +35,7 @@ from multiprocessing import Process
 from single import Lock
 import boto3
 from shutil import copyfile
-
+from botocore.exceptions import SSLError
 
 GINA_URL = (
     "http://nrt-status.gina.alaska.edu/products.json"
@@ -160,14 +160,10 @@ class MirrorGina(object):
                         key = filename_from_url(url)
                         ca_bundle = tutil.get_env_var("REQUESTS_CA_BUNDLE", None)
                         try:
-                            logger.debug("TOMP: creating resource")
                             s3 = boto3.resource("s3", verify=ca_bundle)
-                            logger.debug("TOMP: creating bucket")
-                            bucket = s3.Bucket(self.s3_bucket_name)
-                            logger.debug("TOMP: bucket upload")
-                            bucket.upload_file(tmp_file, key)
-                            logger.debug("TOMP: upload complete")
-                        except Exception as e:
+                            bucket = s3.Bucket(self.s3_bucket_name, verify=ca_bundle)
+                            bucket.upload_file(tmp_file, key, verify=ca_bundle)
+                        except SSLError as e:
                             logger.debug("TOMP: caught exception")
                             logger.error(
                                 "Caught exception {} using bundle {}", e, ca_bundle
