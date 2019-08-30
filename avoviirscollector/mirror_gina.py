@@ -161,7 +161,7 @@ class MirrorGina(object):
                         ca_bundle = tutil.get_env_var("REQUESTS_CA_BUNDLE", None)
                         try:
                             s3 = boto3.resource("s3", verify=ca_bundle)
-                            bucket = s3.Bucket(self.s3_bucket_name, verify=ca_bundle)
+                            bucket = s3.Bucket(self.s3_bucket_name)
                             bucket.upload_file(tmp_file, key, verify=ca_bundle)
                         except SSLError as e:
                             logger.debug("TOMP: caught exception")
