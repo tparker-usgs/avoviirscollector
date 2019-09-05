@@ -14,39 +14,61 @@
 
 import tomputils.util as tutil
 import re
-import os
-from .utils import path_from_url, filename_from_url
+from .utils import filename_from_url
 import boto3
-from botocore.exceptions import SSLError
-from avoviirscollector import logger
+import botocore.exceptions
+from avoviirscollector import logger, SATELLITE
+import json
+
+BUCKET_NAME = tutil.get_env_var("S3_BUCKET", "UNSET")
+
+
+def list_files(orbit):
+    files = []
+    client = boto3.client("s3")
+    paginator = client.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=BUCKET_NAME, Prefix=f"{SATELLITE}/{orbit}/"):
+        print(json.dumps(page, indent=4))
+        if page["KeyCount"] == 0:
+            continue
+        for file in page["Contents"]:
+            files.append(file)
+
+    return files
 
 
 def queue_files(file_list, channels):
+    orbits = {}
+    for new_file in file_list:
+        orbit = new_file.orbit
+        if orbit not in orbits:
+            orbits[orbit] = list_files(orbit)
+
     queue = []
-    # pattern = re.compile("/({})_".format("|".join(channels)))
-    # logger.debug("%d files before pruning", len(file_list))
-    # for new_file in file_list:
-    #     out_file = path_from_url(self.out_path, new_file.url)
-    #     if pattern.search(out_file) and not os.path.exists(out_file):
-    #         logger.debug("Queueing %s", new_file.url)
-    #         queue.append(new_file)
-    #     else:
-    #         logger.debug("Skipping %s", new_file.url)
-    # logger.info("%d files after pruning", len(queue))
+    pattern = re.compile("/({})_".format("|".join(channels)))
+    for new_file in file_list:
+
+        orbit = new_file.orbit
+        filename = f"{SATELLITE}/{orbit}/{new_file.basename}"
+        if pattern.search(filename) and filename not in orbits[orbit]:
+            logger.debug("Queueing %s", new_file.url)
+            queue.append(new_file)
+        else:
+            logger.debug("Skipping %s", new_file.url)
+    logger.info("%d files after pruning", len(queue))
     return queue
 
 
-def place_file(url, tmp_file):
-    s3_bucket_name = tutil.get_env_var("S3_BUCKET")
-    logger.debug("Uploading %s to S3 Bucket %s", tmp_file, s3_bucket_name)
-    key = filename_from_url(url)
-    ca_bundle = tutil.get_env_var("REQUESTS_CA_BUNDLE", None)
+def place_file(file, tmp_file):
+    filename = file.basename
+    orbit = file.orbit
+    logger.debug("Uploading %s to S3 Bucket %s", tmp_file, BUCKET_NAME)
+    key = f"{SATELLITE}/{orbit}/{filename}"
     try:
-        s3 = boto3.resource("s3", verify=ca_bundle)
-        bucket = s3.Bucket(s3_bucket_name)
-        bucket.upload_file(tmp_file, key, verify=ca_bundle)
-    except SSLError as e:
+        s3 = boto3.resource("s3")
+        bucket = s3.Bucket(BUCKET_NAME)
+        bucket.upload_file(tmp_file, key)
+    except botocore.exceptions.SSLError as e:
         logger.debug("TOMP: caught exception")
-        logger.error("Caught exception {} using bundle {}", e, ca_bundle)
         logger.error("TOMP: %s", e.__doc__)
         logger.error("TOMP: %s", e.message)

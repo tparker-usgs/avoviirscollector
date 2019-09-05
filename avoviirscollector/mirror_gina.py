@@ -51,7 +51,9 @@ class MirrorGina(object):
         elif self.file_store_type == "local":
             self.file_store = avoviirscollector.viirs_filesystem_store
         else:
-            tutil.exit_with_error("Missing VIIRS_FILE_STORE_TYPE env var")
+            tutil.exit_with_error(
+                "Unknown VIIRS_FILE_STORE_TYPE env var: {}".format(self.file_store_type)
+            )
 
         # We should ignore SIGPIPE when using pycurl.NOSIGNAL - see
         # the libcurl tutorial for more info.
@@ -135,7 +137,7 @@ class MirrorGina(object):
                     logger.info(e)
                     os.unlink(tmp_file)
                 else:
-                    self.file_store.place_file(url, tmp_file)
+                    self.file_store.place_file(file, tmp_file)
             else:
                 size = os.path.getsize(tmp_file)
                 msg = "Bad checksum: %s != %s (%d bytes)"

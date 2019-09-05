@@ -37,11 +37,11 @@ def queue_files(file_list, channels):
     return queue
 
 
-def place_file(url, tmp_file):
+def place_file(file, tmp_file):
     if not os.path.exists(OUT_PATH):
         os.mkdir(OUT_PATH)
 
-    out_file = path_from_url(OUT_PATH, url)
+    out_file = path_from_url(OUT_PATH, file.url)
     msg = "File looks good. Moving {} to {}".format(tmp_file, out_file)
     logger.info(msg)
     copyfile(tmp_file, out_file)
