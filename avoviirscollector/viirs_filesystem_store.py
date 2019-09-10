@@ -12,7 +12,6 @@
 """ Store VIIRS files in a local filesystem path
 """
 
-import tomputils.util as tutil
 import re
 import os
 from .utils import path_from_url

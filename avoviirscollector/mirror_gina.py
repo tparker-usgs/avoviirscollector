@@ -27,8 +27,6 @@ from io import BytesIO
 from .viirs import Viirs
 import h5py
 from tomputils.downloader import Downloader
-import multiprocessing_logging
-from multiprocessing import Process
 from single import Lock
 import avoviirscollector.viirs_filesystem_store
 import avoviirscollector.viirs_s3_store
