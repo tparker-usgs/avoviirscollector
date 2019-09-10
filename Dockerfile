@@ -7,8 +7,6 @@ COPY DOIRootCA.crt .
 
 WORKDIR /app/avoviirscollector
 COPY cron-viirscollector .
-COPY mirrorGina.yaml .
-COPY mirrorGinaS3.yaml .
 COPY setup.cfg .
 COPY setup.py .
 COPY bin bin
