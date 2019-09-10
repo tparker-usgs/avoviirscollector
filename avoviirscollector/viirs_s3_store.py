@@ -14,11 +14,9 @@
 
 import tomputils.util as tutil
 import re
-from .utils import filename_from_url
 import boto3
 import botocore.exceptions
 from avoviirscollector import logger, SATELLITE
-import json
 
 BUCKET_NAME = tutil.get_env_var("S3_BUCKET", "UNSET")
 
@@ -28,7 +26,6 @@ def list_files(orbit):
     client = boto3.client("s3")
     paginator = client.get_paginator("list_objects_v2")
     for page in paginator.paginate(Bucket=BUCKET_NAME, Prefix=f"{SATELLITE}/{orbit}/"):
-        print(json.dumps(page, indent=4))
         if page["KeyCount"] == 0:
             continue
         for file in page["Contents"]:
