@@ -19,11 +19,12 @@ import botocore.exceptions
 from avoviirscollector import logger, SATELLITE
 
 BUCKET_NAME = tutil.get_env_var("S3_BUCKET", "UNSET")
+VERIFY = tutil.get_env_var("VERIFY")
 
 
 def list_files(orbit):
     files = []
-    client = boto3.client("s3")
+    client = boto3.client("s3", verify=VERIFY)
     paginator = client.get_paginator("list_objects_v2")
     for page in paginator.paginate(Bucket=BUCKET_NAME, Prefix=f"{SATELLITE}/{orbit}/"):
         if page["KeyCount"] == 0:
@@ -67,7 +68,7 @@ def place_file(file, tmp_file):
     logger.debug("Uploading %s to S3 Bucket %s", tmp_file, BUCKET_NAME)
     key = f"{SATELLITE}/{orbit}/{filename}"
     try:
-        s3 = boto3.resource("s3")
+        s3 = boto3.resource("s3", verify=VERIFY)
         bucket = s3.Bucket(BUCKET_NAME)
         bucket.upload_file(tmp_file, key)
     except botocore.exceptions.SSLError as e:
