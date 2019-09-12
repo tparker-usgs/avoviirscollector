@@ -39,7 +39,12 @@ def queue_files(file_list, channels):
     for new_file in file_list:
         orbit = new_file.orbit
         if orbit not in orbits:
-            orbits[orbit] = list_files(orbit)
+            try:
+                orbits[orbit] = list_files(orbit)
+            except Exception as e:
+                print("TOMP SAYS:")
+                print(e.with_traceback())
+                print("THAT's ALL")
 
     queue = []
     pattern = re.compile("/({})_".format("|".join(channels)))
