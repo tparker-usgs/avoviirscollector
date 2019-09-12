@@ -20,9 +20,9 @@ from avoviirscollector import logger, SATELLITE
 
 BUCKET_NAME = tutil.get_env_var("S3_BUCKET", "UNSET")
 VERIFY = tutil.get_env_var("VERIFY")
-if VERIFY = "True":
+if VERIFY == "True":
     VERIFY = True
-elif VERIFY = "False":
+elif VERIFY == "False":
     VERIFY = False
 
 
