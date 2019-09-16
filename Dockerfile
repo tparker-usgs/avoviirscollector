@@ -17,4 +17,4 @@ COPY supervisord.conf /etc/supervisor/supervisord.conf
 ENV PYTHONUNBUFFERED=1
 
 RUN pip freeze > requirements.txt
-CMD ["supervisord"]
+CMD ["mirror_gina"]
